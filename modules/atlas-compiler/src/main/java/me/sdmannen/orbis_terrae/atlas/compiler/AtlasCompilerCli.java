@@ -29,6 +29,8 @@ public final class AtlasCompilerCli {
             case "pack-land-mask" -> packLandMask(args);
             case "validate-manifest" -> validateManifest(args);
             case "canonicalize-manifest" -> canonicalizeManifest(args);
+            case "generate-synthetic-fixture" -> generateSyntheticFixture(args);
+            case "verify-synthetic-fixture" -> verifySyntheticFixture(args);
             case "sample-elevation" -> sampleElevation(args);
             case "sample-land" -> sampleLand(args);
             default -> usageAndExit();
@@ -107,6 +109,27 @@ public final class AtlasCompilerCli {
         AtlasManifestJson.write(Path.of(args[2]), manifest);
     }
 
+    private static void generateSyntheticFixture(String[] args) throws IOException {
+        if (args.length != 2) {
+            usageAndExit();
+        }
+        Path output = Path.of(args[1]);
+        SyntheticAtlasFixture.write(output);
+        SyntheticAtlasFixture.verify(output);
+        System.out.println(
+                "Generated synthetic atlas fixture " + output.toAbsolutePath().normalize());
+    }
+
+    private static void verifySyntheticFixture(String[] args) throws IOException {
+        if (args.length != 2) {
+            usageAndExit();
+        }
+        Path fixture = Path.of(args[1]);
+        SyntheticAtlasFixture.verify(fixture);
+        System.out.println(
+                "Valid synthetic atlas fixture " + fixture.toAbsolutePath().normalize());
+    }
+
     private static void sampleElevation(String[] args) throws IOException {
         if (args.length != 6) {
             usageAndExit();
@@ -183,6 +206,8 @@ public final class AtlasCompilerCli {
         System.err.println("  pack-land-mask <tileSize> <raw-0-or-1-bytes> <output.otat>");
         System.err.println("  validate-manifest <atlas-manifest.json>");
         System.err.println("  canonicalize-manifest <input.json> <output.json>");
+        System.err.println("  generate-synthetic-fixture <output-directory>");
+        System.err.println("  verify-synthetic-fixture <fixture-directory>");
         System.err.println(
                 "  sample-elevation <atlas-directory> <layer-id> <latitude> <longitude> <nearest|bilinear>");
         System.err.println(
