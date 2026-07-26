@@ -67,7 +67,11 @@ public final class SyntheticAtlasFixture {
         }
     }
 
-    /** Verifies that a directory exactly matches the canonical fixture byte-for-byte. */
+    /**
+     * Verifies the exact file set, canonical manifest text and byte-identical binary tiles.
+     *
+     * <p>Manifest line endings are normalized so Windows and Unix checkouts verify identically.
+     */
     public static void verify(Path fixtureDirectory) throws IOException {
         Path root = requireDirectory(fixtureDirectory);
         Map<String, byte[]> expected = expectedFiles();
@@ -78,8 +82,10 @@ public final class SyntheticAtlasFixture {
                     "Fixture file set differs; expected " + expectedPaths + ", got " + actualPaths);
         }
         for (Map.Entry<String, byte[]> entry : expected.entrySet()) {
-            byte[] actual = Files.readAllBytes(root.resolve(entry.getKey()));
-            if (!Arrays.equals(entry.getValue(), actual)) {
+            byte[] expectedBytes = normalizeForComparison(entry.getKey(), entry.getValue());
+            byte[] actualBytes = normalizeForComparison(
+                    entry.getKey(), Files.readAllBytes(root.resolve(entry.getKey())));
+            if (!Arrays.equals(expectedBytes, actualBytes)) {
                 throw new IOException("Fixture file differs from canonical bytes: " + entry.getKey());
             }
         }
@@ -152,6 +158,16 @@ public final class SyntheticAtlasFixture {
             }
         }
         return Collections.unmodifiableMap(files);
+    }
+
+    private static byte[] normalizeForComparison(String relativePath, byte[] bytes) {
+        if (!MANIFEST_FILE_NAME.equals(relativePath)) {
+            return bytes;
+        }
+        String text = new String(bytes, StandardCharsets.UTF_8);
+        return text.replace("\r\n", "\n")
+                .replace('\r', '\n')
+                .getBytes(StandardCharsets.UTF_8);
     }
 
     private static short[] elevationTile(int tileX, int tileY) {

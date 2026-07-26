@@ -117,7 +117,11 @@ final class AtlasSamplingCliTest {
         } finally {
             System.setOut(original);
         }
-        return bytes.toString(StandardCharsets.UTF_8);
+        return normalizeLineEndings(bytes.toString(StandardCharsets.UTF_8));
+    }
+
+    private static String normalizeLineEndings(String value) {
+        return value.replace("\r\n", "\n").replace('\r', '\n');
     }
 
     private Path createAtlas(String directoryName, short[] elevations) throws IOException {
