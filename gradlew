@@ -23,6 +23,7 @@ if [ ! -x "$GRADLE_HOME/bin/gradle" ]; then
     fi
     rm -rf "$GRADLE_HOME"
     (cd "$INSTALL_ROOT" && jar xf "$ARCHIVE")
+    chmod +x "$GRADLE_HOME/bin/gradle"
 fi
 
 exec "$GRADLE_HOME/bin/gradle" "$@"
