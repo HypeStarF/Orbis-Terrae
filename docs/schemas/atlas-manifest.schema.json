@@ -1,16 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://orbis-terrae.invalid/schemas/atlas-manifest.schema.json",
-  "title": "Orbis Terrae Atlas Manifest",
+  "$id": "https://orbis-terrae.invalid/schemas/atlas-manifest-v1.schema.json",
+  "title": "Orbis Terrae Atlas Manifest v1",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schemaVersion",
     "atlasId",
     "atlasVersion",
+    "compilerVersion",
     "projection",
-    "tileSize",
-    "layers"
+    "bounds",
+    "layers",
+    "provenance"
   ],
   "properties": {
     "schemaVersion": {
@@ -18,44 +20,265 @@
       "const": 1
     },
     "atlasId": {
-      "type": "string",
-      "pattern": "^[a-z0-9_-]+$"
+      "$ref": "#/$defs/identifier"
     },
     "atlasVersion": {
-      "type": "string"
+      "$ref": "#/$defs/nonBlankString"
+    },
+    "compilerVersion": {
+      "$ref": "#/$defs/nonBlankString"
     },
     "projection": {
       "type": "string",
-      "enum": [
-        "equirectangular"
-      ]
+      "const": "equirectangular"
     },
-    "tileSize": {
-      "type": "integer",
-      "minimum": 1
+    "bounds": {
+      "$ref": "#/$defs/bounds"
     },
     "layers": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "schemaVersion",
-          "encoding"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
+        "$ref": "#/$defs/layer"
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/provenance"
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "nonBlankString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*"
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "west",
+        "south",
+        "east",
+        "north"
+      ],
+      "properties": {
+        "west": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "south": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "east": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "north": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "formatVersion",
+        "encoding",
+        "tileSize",
+        "zoom",
+        "gridWidthSamples",
+        "gridHeightSamples",
+        "pathTemplate"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "elevation",
+            "land_mask"
+          ]
+        },
+        "formatVersion": {
+          "type": "integer",
+          "const": 1
+        },
+        "encoding": {
+          "type": "string",
+          "enum": [
+            "signed_int16_le",
+            "packed_bitset_lsb0"
+          ]
+        },
+        "tileSize": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 4096
+        },
+        "zoom": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gridWidthSamples": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "gridHeightSamples": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "noDataValue": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "pathTemplate": {
+          "type": "string",
+          "minLength": 1,
+          "allOf": [
+            {
+              "pattern": "\\{z\\}"
+            },
+            {
+              "pattern": "\\{x\\}"
+            },
+            {
+              "pattern": "\\{y\\}"
+            },
+            {
+              "pattern": "\\.otat$"
+            }
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "pattern": "^/"
+              },
+              {
+                "pattern": "\\\\"
+              },
+              {
+                "pattern": "(^|/)\\.\\.(/|$)"
+              }
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "elevation"
+              }
+            },
+            "required": [
+              "type"
+            ]
           },
-          "schemaVersion": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "encoding": {
-            "type": "string"
+          "then": {
+            "properties": {
+              "encoding": {
+                "const": "signed_int16_le"
+              },
+              "noDataValue": {
+                "const": -32768
+              }
+            },
+            "required": [
+              "noDataValue"
+            ]
           }
         },
-        "additionalProperties": true
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "land_mask"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "encoding": {
+                "const": "packed_bitset_lsb0"
+              }
+            },
+            "not": {
+              "required": [
+                "noDataValue"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "title",
+        "datasetVersion",
+        "licence",
+        "attribution",
+        "sourceUrl",
+        "retrievedDate",
+        "processing"
+      ],
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "title": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "datasetVersion": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "licence": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "attribution": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://"
+        },
+        "retrievedDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "processing": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonBlankString"
+          }
+        }
       }
     }
   }
