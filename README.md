@@ -1,9 +1,8 @@
 # Orbis Terrae
 
 Orbis Terrae is a NeoForge 1.21.1 project for deterministic, offline Earth world generation.
-This repository is the Phase 0 foundation: build tooling, module boundaries, CI, static checks,
-architecture records, provenance templates, and an empty mod that is safe to load on a dedicated
-server.
+Phase 0 established the build, module, CI, architecture, provenance, and dedicated-server-safe mod
+foundation. Phase 1 now focuses on the atlas proof of concept.
 
 ## Project identity
 
@@ -14,6 +13,8 @@ server.
 | NeoForge temporary build pin | `21.1.243` |
 | Java | `21` |
 | Gradle | `9.6.1` |
+| Development version | `0.1.0-SNAPSHOT` |
+| Current phase | Phase 1 — Atlas proof of concept |
 | Mod ID | `orbis_terrae` |
 | Group | `me.sdmannen` |
 | Artifact | `orbis-terrae` |
@@ -45,11 +46,16 @@ Configuration caching is disabled for Phase 0 verification. Build caching remain
 The committed wrapper downloads Gradle 9.6.1 and verifies the distribution against its published
 SHA-256 checksum.
 
-## Phase 0 status
+## Project status
 
-Automated repository checks are implemented. Client and dedicated-server smoke tests must be run
-on a development machine with network access and a graphical environment. Follow
-[`docs/phase-0/acceptance-checklist.md`](docs/phase-0/acceptance-checklist.md).
+Phase 0 was accepted on 2026-07-26 after the clean build, strict CI checks, client smoke test,
+dedicated-server smoke test, restart test, identity review, and architecture checks were signed off.
+See [`PHASE0-STATUS.md`](PHASE0-STATUS.md) and
+[`docs/phase-0/verification-record.md`](docs/phase-0/verification-record.md).
+
+Phase 1 is the atlas proof of concept. It will establish the atlas manifest, tile format, compiler
+CLI, coordinate conversion, deterministic elevation and land-mask imports, atlas reader, and tile
+cache before Minecraft world generation work begins.
 
 ## Modules
 
