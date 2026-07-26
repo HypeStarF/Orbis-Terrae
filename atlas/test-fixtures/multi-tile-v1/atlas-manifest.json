@@ -40,8 +40,6 @@
     "attribution" : "Generated deterministically by the Orbis Terrae atlas compiler",
     "sourceUrl" : "https://orbis-terrae.invalid/fixtures/phase1-multi-tile",
     "retrievedDate" : "2026-07-26",
-    "processing" : [ "Created a 4x4 equirectangular sample grid",
-      "Split elevation and land-mask layers into four 2x2 tiles",
-      "Inserted one explicit elevation no-data sample" ]
+    "processing" : [ "Created a 4x4 equirectangular sample grid", "Split elevation and land-mask layers into four 2x2 tiles", "Inserted one explicit elevation no-data sample" ]
   } ]
 }
