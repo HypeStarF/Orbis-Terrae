@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.BitSet;
 import me.sdmannen.orbis_terrae.atlas.format.AtlasTileWriter;
+import me.sdmannen.orbis_terrae.atlas.manifest.AtlasManifest;
+import me.sdmannen.orbis_terrae.atlas.manifest.AtlasManifestJson;
 
 public final class AtlasCompilerCli {
     private AtlasCompilerCli() {
@@ -20,6 +22,8 @@ public final class AtlasCompilerCli {
             case "--version" -> printVersion(args);
             case "pack-elevation" -> packElevation(args);
             case "pack-land-mask" -> packLandMask(args);
+            case "validate-manifest" -> validateManifest(args);
+            case "canonicalize-manifest" -> canonicalizeManifest(args);
             default -> usageAndExit();
         }
     }
@@ -79,6 +83,23 @@ public final class AtlasCompilerCli {
         write(output, new AtlasTileWriter().encodeLandMask(tileSize, land));
     }
 
+    private static void validateManifest(String[] args) throws IOException {
+        if (args.length != 2) {
+            usageAndExit();
+        }
+        AtlasManifest manifest = AtlasManifestJson.read(Path.of(args[1]));
+        System.out.println(
+                "Valid atlas manifest " + manifest.atlasId() + " version " + manifest.atlasVersion());
+    }
+
+    private static void canonicalizeManifest(String[] args) throws IOException {
+        if (args.length != 3) {
+            usageAndExit();
+        }
+        AtlasManifest manifest = AtlasManifestJson.read(Path.of(args[1]));
+        AtlasManifestJson.write(Path.of(args[2]), manifest);
+    }
+
     private static int parseTileSize(String value) {
         int tileSize = Integer.parseInt(value);
         if (tileSize < 2 || tileSize > 4096) {
@@ -100,6 +121,8 @@ public final class AtlasCompilerCli {
         System.err.println("  --version");
         System.err.println("  pack-elevation <tileSize> <raw-int16le> <output.otat>");
         System.err.println("  pack-land-mask <tileSize> <raw-0-or-1-bytes> <output.otat>");
+        System.err.println("  validate-manifest <atlas-manifest.json>");
+        System.err.println("  canonicalize-manifest <input.json> <output.json>");
         System.exit(2);
     }
 }
