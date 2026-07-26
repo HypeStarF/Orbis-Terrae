@@ -6,7 +6,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -41,6 +41,20 @@ jobs:
             --no-configuration-cache \
             --warning-mode=fail
           echo "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7  gradle/wrapper/gradle-wrapper.jar" | sha256sum --check -
+
+      - name: Commit regenerated wrapper
+        if: github.event_name == 'push' && github.ref_name == 'agent/gradle-9.6.1'
+        shell: bash
+        run: |
+          if git diff --quiet -- gradlew gradlew.bat gradle/wrapper; then
+            echo "Wrapper files are already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gradlew gradlew.bat gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.properties
+          git commit -m "build: regenerate Gradle 9.6.1 wrapper"
+          git push
 
       - name: Upload generated wrapper
         uses: actions/upload-artifact@v7
