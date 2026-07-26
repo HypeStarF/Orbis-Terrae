@@ -33,6 +33,9 @@ chmod +x gradlew
 ./gradlew :modules:minecraft-mod:runClient --no-configuration-cache
 ./gradlew :modules:minecraft-mod:runServer --no-configuration-cache
 ./gradlew :modules:atlas-compiler:run --args="--version" --no-configuration-cache
+./gradlew :modules:atlas-compiler:run \
+  --args="validate-manifest atlas/test-fixtures/manifest-v1/atlas-manifest.json" \
+  --no-configuration-cache
 ```
 
 Windows:
@@ -42,6 +45,9 @@ gradlew.bat clean phase0Check --no-configuration-cache --warning-mode=fail
 gradlew.bat :modules:minecraft-mod:runClient --no-configuration-cache
 gradlew.bat :modules:minecraft-mod:runServer --no-configuration-cache
 gradlew.bat :modules:atlas-compiler:run --args="--version" --no-configuration-cache
+gradlew.bat :modules:atlas-compiler:run ^
+  --args="validate-manifest atlas/test-fixtures/manifest-v1/atlas-manifest.json" ^
+  --no-configuration-cache
 ```
 
 Configuration caching is disabled for Phase 0 verification. Build caching remains enabled.
@@ -57,13 +63,14 @@ See [`PHASE0-STATUS.md`](PHASE0-STATUS.md) and
 
 Phase 1 is the atlas proof of concept. The repository now contains the first `OTAT` tile reader and
 writer, elevation and land-mask tile types, equirectangular coordinate conversion, a bounded tile
-cache, a manifest model, and compiler commands for normalized elevation and land-mask inputs.
+cache, a strict versioned atlas-manifest contract, and compiler commands for normalized elevation,
+land-mask, and manifest inputs. See [`docs/atlas/manifest-v1.md`](docs/atlas/manifest-v1.md).
 
 ## Modules
 
 - `minecraft-mod`: NeoForge entry point and run configurations.
-- `atlas-api`: Minecraft-independent tile format, atlas manifest, coordinate sampling, and cache.
-- `atlas-compiler`: command-line packer for normalized elevation and land-mask tiles.
+- `atlas-api`: Minecraft-independent tile format, strict atlas manifest, coordinate sampling, and cache.
+- `atlas-compiler`: command-line packer and manifest validator/canonicalizer.
 - `compatibility-api`: stable compatibility contracts.
 - `compatibility-mekanism`: optional integration placeholder.
 - `compatibility-immersive-engineering`: optional integration placeholder.
