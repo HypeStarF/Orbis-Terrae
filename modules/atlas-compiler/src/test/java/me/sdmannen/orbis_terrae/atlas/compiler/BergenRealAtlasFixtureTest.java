@@ -74,7 +74,7 @@ final class BergenRealAtlasFixtureTest {
 
         assertTrue(sampled.isPresent());
         assertEquals(446.0, sampled.getAsDouble(), 1.0e-9);
-        assertEquals(4, atlas.cache().statistics().misses());
+        assertEquals(4, atlas.cacheStats().misses());
     }
 
     @Test
