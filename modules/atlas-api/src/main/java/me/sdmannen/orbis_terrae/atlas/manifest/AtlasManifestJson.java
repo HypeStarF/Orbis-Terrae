@@ -40,7 +40,12 @@ public final class AtlasManifestJson {
 
     public static String encode(AtlasManifest manifest) throws JsonProcessingException {
         Objects.requireNonNull(manifest, "manifest");
-        return WRITER.writeValueAsString(manifest) + "\n";
+        String json = WRITER.writeValueAsString(manifest);
+        return normalizeLineEndings(json) + "\n";
+    }
+
+    private static String normalizeLineEndings(String text) {
+        return text.replace("\r\n", "\n").replace('\r', '\n');
     }
 
     private static ObjectMapper createMapper() {

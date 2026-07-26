@@ -74,14 +74,15 @@ final class SyntheticAtlasFixtureTest {
         SyntheticAtlasFixture.write(fixture);
         Path manifest = fixture.resolve(SyntheticAtlasFixture.MANIFEST_FILE_NAME);
         String canonical = Files.readString(manifest, StandardCharsets.UTF_8);
+        String canonicalLf = canonical.replace("\r\n", "\n").replace('\r', '\n');
 
         Files.writeString(
                 manifest,
-                canonical.replace("\n", "\r\n"),
+                canonicalLf.replace("\n", "\r\n"),
                 StandardCharsets.UTF_8);
         SyntheticAtlasFixture.verify(fixture);
 
-        Files.writeString(manifest, " " + canonical, StandardCharsets.UTF_8);
+        Files.writeString(manifest, " " + canonicalLf, StandardCharsets.UTF_8);
         assertThrows(IOException.class, () -> SyntheticAtlasFixture.verify(fixture));
     }
 

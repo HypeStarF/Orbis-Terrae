@@ -43,6 +43,7 @@ final class AtlasManifestJsonTest {
         assertEquals(first, second);
         assertEquals(manifest, AtlasManifestJson.decode(first));
         assertTrue(first.endsWith("\n"));
+        assertFalse(first.contains("\r"));
         assertFalse(first.contains("\"noDataValue\" : null"));
     }
 

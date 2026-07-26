@@ -48,7 +48,7 @@ final class AtlasDirectoryTest {
         assertTrue(elevation.containsTile(1, 0));
         assertFalse(elevation.containsTile(2, 0));
         assertEquals(
-                root.resolve("layers/elevation/0/1/0.otat").toAbsolutePath().normalize(),
+                atlas.rootDirectory().resolve("layers/elevation/0/1/0.otat").normalize(),
                 elevation.tilePath(1, 0));
     }
 
