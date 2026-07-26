@@ -27,6 +27,7 @@ public final class AtlasCompilerCli {
             case "--version" -> printVersion(args);
             case "pack-elevation" -> packElevation(args);
             case "pack-land-mask" -> packLandMask(args);
+            case "compile-raster-atlas" -> compileRasterAtlas(args);
             case "validate-manifest" -> validateManifest(args);
             case "canonicalize-manifest" -> canonicalizeManifest(args);
             case "generate-synthetic-fixture" -> generateSyntheticFixture(args);
@@ -90,6 +91,17 @@ public final class AtlasCompilerCli {
             }
         }
         write(output, new AtlasTileWriter().encodeLandMask(tileSize, land));
+    }
+
+    private static void compileRasterAtlas(String[] args) throws IOException {
+        if (args.length != 5) {
+            usageAndExit();
+        }
+        RasterAtlasCompiler.CompilationResult result = RasterAtlasCompiler.compile(
+                Path.of(args[1]), Path.of(args[2]), Path.of(args[3]), Path.of(args[4]));
+        System.out.println(
+                "Compiled raster atlas " + result.atlasId() + " with " + result.tileCount()
+                        + " tiles to " + result.outputDirectory());
     }
 
     private static void validateManifest(String[] args) throws IOException {
@@ -204,6 +216,8 @@ public final class AtlasCompilerCli {
         System.err.println("  --version");
         System.err.println("  pack-elevation <tileSize> <raw-int16le> <output.otat>");
         System.err.println("  pack-land-mask <tileSize> <raw-0-or-1-bytes> <output.otat>");
+        System.err.println(
+                "  compile-raster-atlas <manifest.json> <elevation.raw> <land-mask.raw> <output-directory>");
         System.err.println("  validate-manifest <atlas-manifest.json>");
         System.err.println("  canonicalize-manifest <input.json> <output.json>");
         System.err.println("  generate-synthetic-fixture <output-directory>");
