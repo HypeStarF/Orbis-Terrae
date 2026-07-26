@@ -1,0 +1,45 @@
+{
+  "schemaVersion" : 1,
+  "atlasId" : "phase1-multi-tile-fixture",
+  "atlasVersion" : "1.0.0",
+  "compilerVersion" : "0.1.0-SNAPSHOT",
+  "projection" : "equirectangular",
+  "bounds" : {
+    "west" : 0.0,
+    "south" : 0.0,
+    "east" : 3.0,
+    "north" : 3.0
+  },
+  "layers" : [ {
+    "id" : "elevation",
+    "type" : "elevation",
+    "formatVersion" : 1,
+    "encoding" : "signed_int16_le",
+    "tileSize" : 2,
+    "zoom" : 0,
+    "gridWidthSamples" : 4,
+    "gridHeightSamples" : 4,
+    "noDataValue" : -32768,
+    "pathTemplate" : "layers/elevation/{z}/{x}/{y}.otat"
+  }, {
+    "id" : "land_mask",
+    "type" : "land_mask",
+    "formatVersion" : 1,
+    "encoding" : "packed_bitset_lsb0",
+    "tileSize" : 2,
+    "zoom" : 0,
+    "gridWidthSamples" : 4,
+    "gridHeightSamples" : 4,
+    "pathTemplate" : "layers/land-mask/{z}/{x}/{y}.otat"
+  } ],
+  "provenance" : [ {
+    "sourceId" : "synthetic-phase1-multi-tile",
+    "title" : "Synthetic Phase 1 multi-tile reference atlas",
+    "datasetVersion" : "1",
+    "licence" : "Orbis Terrae project test fixture",
+    "attribution" : "Generated deterministically by the Orbis Terrae atlas compiler",
+    "sourceUrl" : "https://orbis-terrae.invalid/fixtures/phase1-multi-tile",
+    "retrievedDate" : "2026-07-26",
+    "processing" : [ "Created a 4x4 equirectangular sample grid", "Split elevation and land-mask layers into four 2x2 tiles", "Inserted one explicit elevation no-data sample" ]
+  } ]
+}
