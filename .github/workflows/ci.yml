@@ -28,7 +28,18 @@ jobs:
         run: chmod +x gradlew
 
       - name: Verify Phase 0
-        run: ./gradlew clean phase0Check --no-configuration-cache --warning-mode=fail --stacktrace
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew clean phase0Check --no-configuration-cache --warning-mode=fail --stacktrace 2>&1 | tee gradle-build.log
+
+      - name: Upload Gradle log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-build-log
+          path: gradle-build.log
+          if-no-files-found: error
 
       - name: Upload build reports
         if: always()
