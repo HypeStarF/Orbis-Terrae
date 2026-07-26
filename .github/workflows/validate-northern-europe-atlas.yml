@@ -1,9 +1,7 @@
 name: Validate Northern Europe Detailed Atlas
 
 on:
-  push:
-    branches:
-      - agent/phase1-scandinavia-detailed-atlas
+  pull_request:
 
 permissions:
   contents: read
