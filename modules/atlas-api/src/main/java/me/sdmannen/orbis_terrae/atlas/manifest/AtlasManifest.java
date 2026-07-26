@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -72,7 +71,8 @@ public record AtlasManifest(
         for (Provenance source : provenance) {
             Objects.requireNonNull(source, "provenance contains null");
             if (!ids.add(source.sourceId())) {
-                throw new IllegalArgumentException("Duplicate provenance source id: " + source.sourceId());
+                throw new IllegalArgumentException(
+                        "Duplicate provenance source id: " + source.sourceId());
             }
         }
     }
@@ -205,6 +205,7 @@ public record AtlasManifest(
                                 "Land-mask layers must not define noDataValue");
                     }
                 }
+                default -> throw new IllegalStateException("Unsupported layer type: " + type);
             }
         }
     }
@@ -294,12 +295,14 @@ public record AtlasManifest(
             try {
                 uri = URI.create(value);
             } catch (IllegalArgumentException exception) {
-                throw new IllegalArgumentException("Invalid provenance.sourceUrl: " + value, exception);
+                throw new IllegalArgumentException(
+                        "Invalid provenance.sourceUrl: " + value,
+                        exception);
             }
             String scheme = uri.getScheme();
             if (scheme == null
                     || uri.getHost() == null
-                    || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+                    || !(scheme.equals("http") || scheme.equals("https"))) {
                 throw new IllegalArgumentException(
                         "provenance.sourceUrl must be an absolute HTTP(S) URL: " + value);
             }
@@ -325,9 +328,8 @@ public record AtlasManifest(
             java.util.function.Function<E, String> jsonValue,
             String label) {
         Objects.requireNonNull(value, label);
-        String normalized = value.toLowerCase(Locale.ROOT);
         for (E candidate : values) {
-            if (jsonValue.apply(candidate).equals(normalized)) {
+            if (jsonValue.apply(candidate).equals(value)) {
                 return candidate;
             }
         }
