@@ -213,7 +213,7 @@ def normalize_layer(job: Job, layer: Layer, layer_id: str, workspace: Path, outp
     edges = grid["pixelEdgeBounds"]
     warped = workspace / f"{layer_id}-warped.tif"
     command = [
-        tool("gdalwarp", gdal_bin), "--quiet", "-overwrite", "-of", "GTiff",
+        tool("gdalwarp", gdal_bin), "-q", "-overwrite", "-of", "GTiff",
         "-t_srs", "EPSG:4326", "-te_srs", "EPSG:4326", "-te",
         fmt(edges["west"]), fmt(edges["south"]), fmt(edges["east"]), fmt(edges["north"]),
         "-ts", str(layer.width), str(layer.height), "-r", layer.resampling,
@@ -226,7 +226,7 @@ def normalize_layer(job: Job, layer: Layer, layer_id: str, workspace: Path, outp
     run(command)
     info = json.loads(run([tool("gdalinfo", gdal_bin), "-json", "-checksum", str(warped)]))
     envi = workspace / f"{layer_id}.bin"
-    run([tool("gdal_translate", gdal_bin), "--quiet", "-strict", "-of", "ENVI",
+    run([tool("gdal_translate", gdal_bin), "-q", "-strict", "-of", "ENVI",
          "-ot", output_type, "-co", "INTERLEAVE=BSQ", str(warped), str(envi)])
     raw_name = "elevation.raw" if layer_id == "elevation" else "land-mask.raw"
     raw = output / raw_name
