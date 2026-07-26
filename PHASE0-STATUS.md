@@ -1,8 +1,11 @@
 # Phase 0 status
 
-**Status:** Accepted  
-**Accepted on:** 2026-07-26  
-**Acceptance checklist commit:** `04bcbfeb13916218f83a4cc8ec721387bebcc645`  
+**Status:** Accepted
+
+**Accepted on:** 2026-07-26
+
+**Acceptance checklist commit:** `04bcbfeb13916218f83a4cc8ec721387bebcc645`
+
 **Accepted by:** HypeStarF
 
 ## Completed foundation
