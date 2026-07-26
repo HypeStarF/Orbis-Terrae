@@ -7,7 +7,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'me.sdmannen.orbis_terrae.atlas.compiler.AtlasCompilerMain'
+    mainClass = 'me.sdmannen.orbis_terrae.atlas.compiler.AtlasCompilerCli'
 }
 
 base {
