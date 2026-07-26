@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "atlasId": "phase1-northern-europe-fixture",
+  "atlasVersion": "0.1.0",
+  "compilerVersion": "0.1.0-SNAPSHOT",
+  "projection": "equirectangular",
+  "bounds": {
+    "west": -25.0,
+    "south": 54.0,
+    "east": 45.0,
+    "north": 72.0
+  },
+  "layers": [
+    {
+      "id": "elevation",
+      "type": "elevation",
+      "formatVersion": 1,
+      "encoding": "signed_int16_le",
+      "tileSize": 256,
+      "zoom": 0,
+      "gridWidthSamples": 7001,
+      "gridHeightSamples": 1801,
+      "noDataValue": -32768,
+      "pathTemplate": "layers/elevation/{z}/{x}/{y}.otat"
+    },
+    {
+      "id": "land_mask",
+      "type": "land_mask",
+      "formatVersion": 1,
+      "encoding": "packed_bitset_lsb0",
+      "tileSize": 256,
+      "zoom": 0,
+      "gridWidthSamples": 7001,
+      "gridHeightSamples": 1801,
+      "pathTemplate": "layers/land-mask/{z}/{x}/{y}.otat"
+    }
+  ],
+  "provenance": [
+    {
+      "sourceId": "synthetic-phase1-fixture",
+      "title": "Synthetic Phase 1 Northern Europe fixture",
+      "datasetVersion": "1",
+      "licence": "Orbis Terrae project test fixture",
+      "attribution": "Generated deterministically for Orbis Terrae tests",
+      "sourceUrl": "https://orbis-terrae.invalid/fixtures/phase1-manifest-v1",
+      "retrievedDate": "2026-07-26",
+      "processing": [
+        "Defined synthetic geographic bounds and grid dimensions",
+        "Declared elevation and land-mask layer contracts"
+      ]
+    }
+  ]
+}
