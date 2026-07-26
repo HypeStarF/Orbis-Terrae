@@ -1,5 +1,5 @@
 [versions]
-junit = "5.11.4"
+junit = "6.1.2"
 checkstyle = "10.21.4"
 
 [libraries]
