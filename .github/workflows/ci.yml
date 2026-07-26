@@ -44,6 +44,7 @@ jobs:
             python -m unittest discover -s scripts/gis -p 'test_*.py' -v
             python scripts/gis/normalize_atlas.py plan atlas/profiles/gdal-normalization-example.json > /dev/null
             python scripts/gis/build_bergen_real_atlas.py plan > /dev/null
+            python scripts/gis/build_bergen_real_atlas.py verify atlas/test-fixtures/bergen-real-v1.zip
           } 2>&1 | tee gis-normalization.log
 
       - name: Upload GIS normalization log
@@ -90,14 +91,10 @@ jobs:
   real-atlas-fixture:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: write
 
     steps:
-      - name: Check out PR branch
+      - name: Check out repository
         uses: actions/checkout@v7
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Set up Java 21
         uses: actions/setup-java@v5
@@ -117,35 +114,14 @@ jobs:
           sudo apt-get install --yes gdal-bin
           gdalinfo --version
 
-      - name: Build pinned Bergen real-data atlas
+      - name: Rebuild and compare Bergen real-data atlas
         shell: bash
         run: |
           chmod +x gradlew
           python scripts/gis/build_bergen_real_atlas.py build \
             build/bergen-real-v1 \
-            --require-locked
-
-      - name: Commit fixture bootstrap
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository
-        shell: bash
-        env:
-          HEAD_BRANCH: ${{ github.head_ref }}
-        run: |
-          fixture=atlas/test-fixtures/bergen-real-v1.zip
-          if test -f "$fixture"; then
-            echo "Fixture already exists; bootstrap commit is unnecessary."
-            exit 0
-          fi
-          mkdir -p "$(dirname "$fixture")"
-          cp build/bergen-real-v1/bergen-real-v1.zip "$fixture"
-          python scripts/gis/build_bergen_real_atlas.py verify "$fixture"
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add "$fixture"
-          git commit -m "data: add Bergen real-data atlas fixture"
-          git push origin "HEAD:$HEAD_BRANCH"
+            --require-locked \
+            --compare atlas/test-fixtures/bergen-real-v1.zip
 
       - name: Upload Bergen atlas fixture
         if: always()
@@ -184,6 +160,7 @@ jobs:
           python -m unittest discover -s scripts/gis -p "test_*.py"
           python scripts/gis/normalize_atlas.py plan atlas/profiles/gdal-normalization-example.json | Out-Null
           python scripts/gis/build_bergen_real_atlas.py plan | Out-Null
+          python scripts/gis/build_bergen_real_atlas.py verify atlas/test-fixtures/bergen-real-v1.zip | Out-Null
 
       - name: Run atlas tests
         shell: pwsh
