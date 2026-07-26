@@ -13,7 +13,7 @@ server.
 | NeoForge requested | `21.1.244` |
 | NeoForge temporary build pin | `21.1.243` |
 | Java | `21` |
-| Gradle | `9.2.1` |
+| Gradle | `9.6.1` |
 | Mod ID | `orbis_terrae` |
 | Group | `me.sdmannen` |
 | Artifact | `orbis-terrae` |
@@ -42,9 +42,8 @@ gradlew.bat :modules:minecraft-mod:runServer --no-configuration-cache
 ```
 
 Configuration caching is disabled for Phase 0 verification. Build caching remains enabled.
-The temporary launcher downloads Gradle 9.2.1 on first use. After the first successful download,
-generate the canonical wrapper with `./gradlew wrapper --gradle-version 9.2.1` and commit the
-resulting wrapper JAR and scripts. See ADR-0003.
+The committed wrapper downloads Gradle 9.6.1 and verifies the distribution against its published
+SHA-256 checksum.
 
 ## Phase 0 status
 

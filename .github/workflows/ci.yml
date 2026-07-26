@@ -27,6 +27,14 @@ jobs:
       - name: Make Gradle launcher executable
         run: chmod +x gradlew
 
+      - name: Verify Gradle 9.6.1 wrapper
+        shell: bash
+        run: |
+          echo "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7  gradle/wrapper/gradle-wrapper.jar" | sha256sum --check -
+          grep -Fqx 'distributionSha256Sum=9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14' gradle/wrapper/gradle-wrapper.properties
+          grep -Fqx 'distributionUrl=https\://services.gradle.org/distributions/gradle-9.6.1-bin.zip' gradle/wrapper/gradle-wrapper.properties
+          ./gradlew --version --no-configuration-cache | grep -F 'Gradle 9.6.1'
+
       - name: Verify Phase 0
         shell: bash
         run: |
