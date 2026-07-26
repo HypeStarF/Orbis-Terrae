@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
@@ -65,6 +66,23 @@ final class SyntheticAtlasFixtureTest {
                     Files.readAllBytes(first.resolve(entry.getKey())),
                     Files.readAllBytes(second.resolve(entry.getKey())));
         }
+    }
+
+    @Test
+    void acceptsManifestPlatformLineEndingsButRejectsOtherChanges() throws Exception {
+        Path fixture = temporaryDirectory.resolve("manifest-line-endings");
+        SyntheticAtlasFixture.write(fixture);
+        Path manifest = fixture.resolve(SyntheticAtlasFixture.MANIFEST_FILE_NAME);
+        String canonical = Files.readString(manifest, StandardCharsets.UTF_8);
+
+        Files.writeString(
+                manifest,
+                canonical.replace("\n", "\r\n"),
+                StandardCharsets.UTF_8);
+        SyntheticAtlasFixture.verify(fixture);
+
+        Files.writeString(manifest, " " + canonical, StandardCharsets.UTF_8);
+        assertThrows(IOException.class, () -> SyntheticAtlasFixture.verify(fixture));
     }
 
     @Test
