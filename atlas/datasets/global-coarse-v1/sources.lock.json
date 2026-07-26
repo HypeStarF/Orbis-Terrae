@@ -6,7 +6,7 @@
       "id": "etopo-2022-60s-global-surface",
       "fileName": "ETOPO_2022_v1_60s_N90W180_surface.tif",
       "url": "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/60s/60s_surface_elev_gtif/ETOPO_2022_v1_60s_N90W180_surface.tif",
-      "sha256": null,
+      "sha256": "9d27d4b8ea8e76977e2988bca667d7c8fa68b927355feffcddd6b4875a7fd08e",
       "dataset": "ETOPO 2022 60 Arc-Second Surface Elevation",
       "datasetVersion": "2022 v1",
       "licence": "CC0-1.0",
