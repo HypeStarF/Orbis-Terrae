@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +12,7 @@ SPEC = importlib.util.spec_from_file_location("build_bergen_real_atlas", SCRIPT)
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError("Unable to load Bergen atlas builder")
 MODULE = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = MODULE
 SPEC.loader.exec_module(MODULE)
 
 
@@ -71,7 +73,7 @@ class BergenRealAtlasBuilderTest(unittest.TestCase):
                 MODULE.load_lock(path)
 
     def test_normalization_job_contains_reviewed_provenance_and_grid(self) -> None:
-        workspace = Path("/tmp/bergen-workspace")
+        workspace = Path("bergen-workspace").resolve()
         job = MODULE.normalization_job(
             workspace / "sources/copernicus-dem-mosaic.vrt",
             workspace / "sources/natural-earth-land-mask.tif",
@@ -81,7 +83,10 @@ class BergenRealAtlasBuilderTest(unittest.TestCase):
         self.assertEqual(MODULE.BOUNDS, job["atlas"]["bounds"])
         self.assertEqual(MODULE.WIDTH, job["elevation"]["widthSamples"])
         self.assertEqual(MODULE.HEIGHT, job["landMask"]["heightSamples"])
-        self.assertIn("Copernicus WorldDEM-90", job["elevation"]["provenance"]["attribution"])
+        self.assertIn(
+            "Copernicus WorldDEM-90",
+            job["elevation"]["provenance"]["attribution"],
+        )
         self.assertEqual("Public domain", job["landMask"]["provenance"]["licence"])
         self.assertEqual([1], job["landMask"]["landValues"])
 
