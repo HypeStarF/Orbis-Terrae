@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the Northern Europe detailed elevation atlas from pinned public sources."""
+"""Build a pinned Northern Europe regional atlas from public GIS sources."""
 
 from __future__ import annotations
 
@@ -127,6 +127,7 @@ def load_profile(path: Path) -> Profile:
         raise Error("Profile bounds must increase west-to-east and south-to-north")
     if bounds.west < -180 or bounds.east > 180 or bounds.south < -90 or bounds.north > 90:
         raise Error("Profile bounds exceed longitude/latitude limits")
+
     resolution = integer(document.get("resolutionArcSeconds"), "resolutionArcSeconds")
     width = integer(document.get("widthSamples"), "widthSamples", 2)
     height = integer(document.get("heightSamples"), "heightSamples", 2)
@@ -137,18 +138,19 @@ def load_profile(path: Path) -> Profile:
             "Profile dimensions do not match bounds and resolution: "
             f"expected {expected_width}x{expected_height}, got {width}x{height}"
         )
+
     elevation = document.get("elevation")
     land_mask = document.get("landMask")
     if not isinstance(elevation, dict) or not isinstance(land_mask, dict):
         raise Error("elevation and landMask must be objects")
-    land_values_value = land_mask.get("landValues")
-    if not isinstance(land_values_value, list) or not land_values_value:
+    values = land_mask.get("landValues")
+    if not isinstance(values, list) or not values:
         raise Error("landMask.landValues must be a non-empty array")
-    land_values = tuple(integer(value, "landMask.landValues", 0) for value in land_values_value)
+    land_values = tuple(integer(value, "landMask.landValues", 0) for value in values)
     if any(value > 255 for value in land_values) or len(set(land_values)) != len(land_values):
         raise Error("landMask.landValues must be unique byte values")
-    source_lock_value = text(document.get("sourceLock"), "sourceLock")
-    source_lock = (path.parent / source_lock_value).resolve()
+
+    source_lock = (path.parent / text(document.get("sourceLock"), "sourceLock")).resolve()
     output_archive = text(document.get("outputArchive"), "outputArchive")
     if Path(output_archive).name != output_archive or not output_archive.lower().endswith(".zip"):
         raise Error("outputArchive must be a simple .zip file name")
@@ -182,6 +184,7 @@ def load_lock(profile: Profile, path: Path | None = None) -> tuple[dict[str, Any
     values = document.get("sources")
     if not isinstance(values, list) or not values:
         raise Error("Source lock must contain at least one source")
+
     sources: list[Source] = []
     seen_ids: set[str] = set()
     seen_names: set[str] = set()
@@ -216,6 +219,7 @@ def load_lock(profile: Profile, path: Path | None = None) -> tuple[dict[str, Any
                 attribution=text(value.get("attribution"), f"{source_id}.attribution"),
             )
         )
+
     etopo = tuple(source for source in sources if source.source_id.startswith("etopo-2022-15s-"))
     natural_earth = tuple(source for source in sources if source.source_id == "natural-earth-10m-land")
     if not etopo or len(natural_earth) != 1 or len(etopo) + 1 != len(sources):
@@ -255,9 +259,8 @@ def run(arguments: Sequence[str], *, cwd: Path | None = None) -> str:
     except FileNotFoundError as exception:
         raise Error(f"Required executable not found: {arguments[0]}") from exception
     except subprocess.CalledProcessError as exception:
-        command = " ".join(arguments)
         raise Error(
-            f"Command failed: {command}\n"
+            f"Command failed: {' '.join(arguments)}\n"
             f"stdout:\n{exception.stdout.strip()}\n"
             f"stderr:\n{exception.stderr.strip()}"
         ) from exception
@@ -311,22 +314,19 @@ def resolve_lock(profile: Profile, output: Path, cache: Path) -> None:
     write_json(output.resolve(), resolved)
 
 
-def extract_natural_earth(archive_path: Path, destination: Path) -> Path:
-    destination.mkdir(parents=True, exist_ok=True)
+def extract_zip_safely(archive_path: Path, destination: Path) -> None:
+    root = destination.resolve()
+    root.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(archive_path) as archive:
         for info in archive.infolist():
             if info.is_dir():
                 continue
-            target = (destination / info.filename).resolve()
-            if not target.is_relative_to(destination.resolve()):
-                raise Error(f"Natural Earth archive contains unsafe path: {info.filename}")
+            target = (root / info.filename).resolve()
+            if not target.is_relative_to(root):
+                raise Error(f"Archive contains unsafe path: {info.filename}")
             target.parent.mkdir(parents=True, exist_ok=True)
             with archive.open(info) as source, target.open("wb") as output:
                 shutil.copyfileobj(source, output)
-    shapefile = destination / "ne_10m_land.shp"
-    if not shapefile.is_file():
-        raise Error("Natural Earth archive did not contain ne_10m_land.shp")
-    return shapefile
 
 
 def format_number(value: float) -> str:
@@ -360,17 +360,20 @@ def prepare_sources(
         ],
         cwd=source_directory,
     )
-    natural_source = next(source for source in sources if source.source_id == "natural-earth-10m-land")
-    shapefile = extract_natural_earth(
-        source_directory / natural_source.file_name,
-        source_directory / "natural-earth-10m-land",
-    )
+
+    land_source = next(source for source in sources if source.source_id == "natural-earth-10m-land")
+    natural_earth = source_directory / "natural-earth-10m-land"
+    extract_zip_safely(source_directory / land_source.file_name, natural_earth)
+    shapefile = natural_earth / "ne_10m_land.shp"
+    if not shapefile.is_file():
+        raise Error("Natural Earth archive did not contain ne_10m_land.shp")
+
     west, south, east, north = sample_edge_bounds(profile)
     land_mask = source_directory / "natural-earth-land-mask.tif"
     run(
         [
             "gdal_rasterize",
-            "--quiet",
+            "-q",
             "-burn",
             "1",
             "-init",
@@ -399,6 +402,7 @@ def prepare_sources(
             str(land_mask),
         ]
     )
+
     aligned = source_directory / "etopo-aligned.tif"
     run(
         [
@@ -437,6 +441,7 @@ def prepare_sources(
             str(aligned),
         ]
     )
+
     elevation = aligned
     if profile.mask_water_to_zero:
         elevation = source_directory / "etopo-land-elevation.tif"
@@ -459,6 +464,7 @@ def prepare_sources(
                 f"--outfile={elevation}",
             ]
         )
+
     actual_hashes["etopo-2022-mosaic-vrt"] = sha256(mosaic)
     actual_hashes["natural-earth-land-mask-tif"] = sha256(land_mask)
     actual_hashes["aligned-elevation-tif"] = sha256(elevation)
@@ -482,15 +488,15 @@ def normalization_job(profile: Profile, elevation: Path, land_mask: Path, worksp
             "sourceNoData": NO_DATA,
             "resampling": "near",
             "provenance": {
-                "sourceId": "noaa-etopo-2022-15s-bedrock",
-                "title": "ETOPO 2022 15 Arc-Second Bedrock Elevation",
+                "sourceId": "noaa-etopo-2022-15s-surface",
+                "title": "ETOPO 2022 15 Arc-Second Surface Elevation",
                 "datasetVersion": "2022 v1",
                 "licence": "CC0-1.0",
                 "attribution": "NOAA National Centers for Environmental Information, ETOPO 2022",
                 "sourceUrl": "https://www.ncei.noaa.gov/products/etopo-global-relief-model",
                 "retrievedDate": "2026-07-26",
                 "processing": [
-                    "Downloaded pinned NOAA ETOPO 2022 15 arc-second GeoTIFF tiles",
+                    "Downloaded pinned NOAA ETOPO 2022 15 arc-second surface GeoTIFF tiles",
                     "Mosaicked source tiles with gdalbuildvrt",
                     "Aligned to inclusive sample-centre bounds with exact output dimensions",
                     "Applied the Natural Earth land mask so ocean elevation samples are zero",
@@ -573,27 +579,23 @@ def copy_metadata(
         "land-mask-preview.pgm",
     ):
         shutil.copy2(normalized / name, metadata / name)
-    resolved_lock = dict(lock_document)
+
+    resolved = dict(lock_document)
     resolved_sources: list[dict[str, Any]] = []
     for value in lock_document["sources"]:
         updated = dict(value)
         updated["sha256"] = actual_hashes[value["id"]]
         resolved_sources.append(updated)
-    resolved_lock["sources"] = resolved_sources
+    resolved["sources"] = resolved_sources
     source_ids = {value["id"] for value in lock_document["sources"]}
-    resolved_lock["derivedFiles"] = {
-        key: actual_hashes[key]
-        for key in sorted(actual_hashes)
-        if key not in source_ids
+    resolved["derivedFiles"] = {
+        key: actual_hashes[key] for key in sorted(actual_hashes) if key not in source_ids
     }
-    write_json(metadata / "sources.lock.json", resolved_lock)
-    write_json(
-        metadata / "release-profile.json",
-        json.loads(profile.path.read_text(encoding="utf-8")),
-    )
+    write_json(metadata / "sources.lock.json", resolved)
+    write_json(metadata / "release-profile.json", json.loads(profile.path.read_text(encoding="utf-8")))
     (atlas / "ATTRIBUTION.md").write_text(
         "# Northern Europe detailed atlas attribution\n\n"
-        "Elevation was produced from NOAA NCEI ETOPO 2022 15 Arc-Second Bedrock Elevation. "
+        "Elevation was produced from NOAA NCEI ETOPO 2022 15 Arc-Second Surface Elevation. "
         "ETOPO 2022 is dedicated to the public domain under CC0-1.0.\n\n"
         "The land mask was made with Natural Earth. Natural Earth data is public domain.\n",
         encoding="utf-8",
@@ -603,17 +605,11 @@ def copy_metadata(
 
 
 def write_archive(atlas: Path, archive_path: Path) -> None:
-    with zipfile.ZipFile(
-        archive_path,
-        "w",
-        compression=zipfile.ZIP_DEFLATED,
-        compresslevel=9,
-    ) as archive:
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for path in sorted(atlas.rglob("*")):
             if not path.is_file():
                 continue
-            relative = path.relative_to(atlas).as_posix()
-            info = zipfile.ZipInfo(relative, date_time=ZIP_TIMESTAMP)
+            info = zipfile.ZipInfo(path.relative_to(atlas).as_posix(), date_time=ZIP_TIMESTAMP)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.create_system = 3
             info.external_attr = (0o100644 & 0xFFFF) << 16
@@ -624,21 +620,6 @@ def write_archive(atlas: Path, archive_path: Path) -> None:
                 compress_type=zipfile.ZIP_DEFLATED,
                 compresslevel=9,
             )
-
-
-def extract_archive(archive_path: Path, destination: Path) -> None:
-    destination = destination.resolve()
-    destination.mkdir(parents=True)
-    with zipfile.ZipFile(archive_path) as archive:
-        for info in archive.infolist():
-            if info.is_dir():
-                continue
-            target = (destination / info.filename).resolve()
-            if not target.is_relative_to(destination):
-                raise Error(f"Archive contains an unsafe path: {info.filename}")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with archive.open(info) as source, target.open("wb") as output:
-                shutil.copyfileobj(source, output)
 
 
 def verify_atlas(profile: Profile, atlas: Path) -> None:
@@ -662,6 +643,7 @@ def verify_atlas(profile: Profile, atlas: Path) -> None:
     }
     if actual_paths != expected_paths:
         raise Error("Fixture file set differs from fixture-checksums.sha256")
+
     manifest = json.loads((atlas / "atlas-manifest.json").read_text(encoding="utf-8"))
     if manifest.get("atlasId") != profile.dataset_id or manifest.get("bounds") != profile.bounds.__dict__:
         raise Error("Atlas manifest identity or bounds do not match the profile")
@@ -687,7 +669,7 @@ def verify(profile: Profile, fixture: Path) -> None:
             raise Error(f"Missing atlas archive: {fixture}")
         with tempfile.TemporaryDirectory() as directory:
             atlas = Path(directory) / profile.dataset_id
-            extract_archive(fixture, atlas)
+            extract_zip_safely(fixture, atlas)
             verify_atlas(profile, atlas)
     else:
         verify_atlas(profile, fixture)
@@ -715,16 +697,13 @@ def build(
         actual_hashes: dict[str, str] = {}
         for source in sources:
             cached = cache / source.file_name
-            actual_hashes[source.source_id] = download(
-                source,
-                cached,
-                require_locked=require_locked,
-            )
+            actual_hashes[source.source_id] = download(source, cached, require_locked=require_locked)
             destination = source_directory / source.file_name
             try:
                 os.link(cached, destination)
             except OSError:
                 shutil.copy2(cached, destination)
+
         elevation, land_mask = prepare_sources(profile, source_directory, sources, actual_hashes)
         job_path = workspace / "normalization-job.json"
         write_json(job_path, normalization_job(profile, elevation, land_mask, workspace))
