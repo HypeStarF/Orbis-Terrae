@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "global-coarse-v1",
+  "atlasVersion": "1.0.0",
+  "compilerVersion": "0.1.0-SNAPSHOT",
+  "bounds": {
+    "west": -179.95833333333334,
+    "south": -89.95833333333333,
+    "east": 179.95833333333334,
+    "north": 89.95833333333333
+  },
+  "resolutionArcSeconds": 300,
+  "widthSamples": 4320,
+  "heightSamples": 2160,
+  "tileSize": 256,
+  "sourceLock": "../datasets/global-coarse-v1/sources.lock.json",
+  "outputArchive": "global-coarse-v1.zip",
+  "elevation": {
+    "resampling": "average",
+    "maskWaterToZero": true
+  },
+  "landMask": {
+    "resampling": "near",
+    "landValues": [
+      1
+    ]
+  }
+}
