@@ -167,17 +167,12 @@ jobs:
           gdalinfo --version
           gdal_calc.py --help > /dev/null
 
-      - name: Resolve and build regional smoke atlas
+      - name: Build pinned regional smoke atlas
         shell: bash
         run: |
           chmod +x gradlew
           python scripts/gis/build_northern_europe_detailed_atlas.py \
             --profile atlas/profiles/northern-europe-detailed-smoke.json \
-            resolve-lock build/northern-europe-detailed-smoke.lock.json \
-            --cache build/regional-atlas-source-cache
-          python scripts/gis/build_northern_europe_detailed_atlas.py \
-            --profile atlas/profiles/northern-europe-detailed-smoke.json \
-            --lock build/northern-europe-detailed-smoke.lock.json \
             build build/northern-europe-detailed-smoke \
             --cache build/regional-atlas-source-cache
           python scripts/gis/build_northern_europe_detailed_atlas.py \
@@ -190,36 +185,8 @@ jobs:
         with:
           name: northern-europe-detailed-smoke
           path: |
-            build/northern-europe-detailed-smoke.lock.json
             build/northern-europe-detailed-smoke/atlas
             build/northern-europe-detailed-smoke/northern-europe-detailed-smoke.zip
-          if-no-files-found: error
-
-  regional-source-lock-bootstrap:
-    if: github.ref_name == 'agent/phase1-scandinavia-detailed-atlas' || github.head_ref == 'agent/phase1-scandinavia-detailed-atlas'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
-
-      - name: Resolve full regional source lock
-        run: |
-          python scripts/gis/build_northern_europe_detailed_atlas.py \
-            resolve-lock build/northern-europe-detailed-v1.lock.json \
-            --cache build/regional-atlas-source-cache
-
-      - name: Upload resolved regional source lock
-        uses: actions/upload-artifact@v7
-        with:
-          name: northern-europe-detailed-source-lock
-          path: build/northern-europe-detailed-v1.lock.json
           if-no-files-found: error
 
   windows-atlas-tests:
