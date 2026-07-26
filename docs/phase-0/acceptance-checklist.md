@@ -6,7 +6,8 @@ Record results in `docs/phase-0/verification-record.md`.
 ## Automated gate
 
 - [ ] `java -version` reports Java 21.
-- [ ] `./gradlew wrapper --gradle-version 9.2.1` generates the canonical wrapper JAR and scripts.
+- [ ] `./gradlew wrapper --gradle-version 9.6.1 --gradle-distribution-sha256-sum 9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14` reproduces the canonical wrapper files.
+- [ ] The wrapper JAR SHA-256 is `497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7`.
 - [ ] The canonical wrapper changes are committed.
 - [ ] `./gradlew clean phase0Check --no-configuration-cache --warning-mode=fail` succeeds from a clean checkout.
 - [ ] A second `./gradlew phase0Check --no-configuration-cache --warning-mode=fail` succeeds without cleaning.
