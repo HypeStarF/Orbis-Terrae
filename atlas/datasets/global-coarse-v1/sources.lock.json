@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "global-coarse-v1",
+  "sources": [
+    {
+      "id": "etopo-2022-60s-global-surface",
+      "fileName": "ETOPO_2022_v1_60s_N90W180_surface.tif",
+      "url": "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/60s/60s_surface_elev_gtif/ETOPO_2022_v1_60s_N90W180_surface.tif",
+      "sha256": null,
+      "dataset": "ETOPO 2022 60 Arc-Second Surface Elevation",
+      "datasetVersion": "2022 v1",
+      "licence": "CC0-1.0",
+      "attribution": "NOAA National Centers for Environmental Information, ETOPO 2022"
+    },
+    {
+      "id": "natural-earth-10m-land",
+      "fileName": "ne_10m_land.zip",
+      "url": "https://naturalearth.s3.amazonaws.com/10m_physical/ne_10m_land.zip",
+      "sha256": "e547d749445eaa0964aba76738090ec88f5e63c4585122170f98c67a7ea922dc",
+      "dataset": "Natural Earth 1:10m Land",
+      "datasetVersion": "5.1.1",
+      "licence": "Public domain",
+      "attribution": "Made with Natural Earth"
+    }
+  ]
+}
