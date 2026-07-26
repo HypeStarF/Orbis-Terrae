@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "northern-europe-detailed-smoke",
+  "atlasVersion": "1.0.0",
+  "compilerVersion": "0.1.0-SNAPSHOT",
+  "bounds": {
+    "west": -14.75,
+    "south": 64.25,
+    "east": -13.75,
+    "north": 65.25
+  },
+  "resolutionArcSeconds": 15,
+  "widthSamples": 241,
+  "heightSamples": 241,
+  "tileSize": 64,
+  "sourceLock": "../datasets/northern-europe-detailed-smoke/sources.lock.json",
+  "outputArchive": "northern-europe-detailed-smoke.zip",
+  "elevation": {
+    "resampling": "bilinear",
+    "maskWaterToZero": true
+  },
+  "landMask": {
+    "resampling": "near",
+    "landValues": [
+      1
+    ]
+  }
+}
