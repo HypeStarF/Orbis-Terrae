@@ -2,6 +2,19 @@ plugins {
     id 'java-library'
 }
 
+dependencies {
+    implementation(libs.jackson.databind)
+}
+
+sourceSets {
+    test {
+        resources {
+            srcDir(rootProject.file('docs/schemas'))
+            srcDir(rootProject.file('atlas/test-fixtures/manifest-v1'))
+        }
+    }
+}
+
 base {
     archivesName = 'orbis-terrae-atlas-api'
 }
