@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':modules:atlas-api')
+}
+
+base {
+    archivesName = 'orbis-terrae-test-support'
+}

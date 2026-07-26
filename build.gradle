@@ -1,0 +1,118 @@
+plugins {
+    id 'base'
+}
+
+allprojects {
+    group = providers.gradleProperty('mod_group_id').get()
+    version = providers.gradleProperty('mod_version').get()
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'checkstyle'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(providers.gradleProperty('java_version').get().toInteger())
+        }
+        withSourcesJar()
+    }
+
+    checkstyle {
+        toolVersion = '10.21.4'
+        configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+        maxWarnings = 0
+    }
+
+    dependencies {
+        testImplementation platform('org.junit:junit-bom:5.11.4')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = providers.gradleProperty('java_version').get().toInteger()
+        options.compilerArgs.addAll(['-Xlint:all', '-Werror'])
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+        testLogging {
+            events 'failed', 'skipped'
+            exceptionFormat 'full'
+        }
+    }
+}
+
+final Set<String> textExtensions = [
+        'java', 'gradle', 'properties', 'toml', 'json', 'json5', 'md',
+        'yml', 'yaml', 'xml', 'txt', 'sh', 'bat', 'ps1'
+] as Set
+
+
+final Closure<List<File>> projectTextFiles = {
+    fileTree(rootDir) {
+        include '**/*'
+        exclude '**/.git/**', '**/.gradle/**', '**/build/**', '**/run/**',
+                '**/.idea/**', '**/.vscode/**', '**/out/**'
+    }.files.findAll { File file ->
+        file.isFile() && textExtensions.contains(file.name.tokenize('.').last())
+    }.sort { it.path }
+}
+
+tasks.register('verifyFormatting') {
+    group = 'verification'
+    description = 'Checks UTF-8 text files for trailing whitespace and a final newline.'
+
+    doLast {
+        List<String> failures = []
+        projectTextFiles().each { File file ->
+            String text = file.getText('UTF-8')
+            List<String> lines = text.readLines()
+            lines.eachWithIndex { String line, int index ->
+                if (line != line.stripTrailing()) {
+                    failures.add("${rootDir.toPath().relativize(file.toPath())}:${index + 1}: trailing whitespace")
+                }
+            }
+            if (!text.isEmpty() && !text.endsWith('\n')) {
+                failures.add("${rootDir.toPath().relativize(file.toPath())}: missing final newline")
+            }
+        }
+
+        if (!failures.isEmpty()) {
+            throw new GradleException('Formatting violations:\n' + failures.join('\n'))
+        }
+    }
+}
+
+tasks.register('format') {
+    group = 'formatting'
+    description = 'Removes trailing whitespace and ensures a final newline in project text files.'
+
+    doLast {
+        projectTextFiles().each { File file ->
+            String normalized = file.getText('UTF-8')
+                    .replace('\r\n', '\n')
+                    .replace('\r', '\n')
+                    .readLines()
+                    .collect { it.stripTrailing() }
+                    .join('\n')
+            file.setText(normalized + '\n', 'UTF-8')
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn subprojects.collect { project -> "${project.path}:check" }
+}
+
+tasks.register('phase0Check') {
+    group = 'verification'
+    description = 'Runs all automated Phase 0 checks.'
+    dependsOn tasks.named('check')
+}

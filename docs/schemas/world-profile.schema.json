@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbis-terrae.invalid/schemas/world-profile.schema.json",
+  "title": "Orbis Terrae World Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "profileId",
+    "projection",
+    "horizontalMetresPerBlock",
+    "verticalProfile",
+    "spawn"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "profileId": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "projection": {
+      "type": "string",
+      "enum": [
+        "equirectangular"
+      ]
+    },
+    "horizontalMetresPerBlock": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "verticalProfile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "spawn": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

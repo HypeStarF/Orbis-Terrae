@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbis-terrae.invalid/schemas/dataset-provenance.schema.json",
+  "title": "Orbis Terrae Dataset Provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "datasetName",
+    "datasetVersion",
+    "sourceUrl",
+    "retrievedAt",
+    "sha256",
+    "licenseReviewStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "datasetName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "datasetVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceUrl": {
+      "type": "string",
+      "format": "uri"
+    },
+    "retrievedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "licenseReviewStatus": {
+      "type": "string",
+      "enum": [
+        "UNREVIEWED",
+        "RESEARCH_ONLY",
+        "APPROVED_INPUT_ONLY",
+        "APPROVED_BUNDLE",
+        "REJECTED"
+      ]
+    },
+    "attribution": {
+      "type": "string"
+    },
+    "preprocessing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

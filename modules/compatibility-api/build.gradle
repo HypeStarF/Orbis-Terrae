@@ -1,0 +1,7 @@
+plugins {
+    id 'java-library'
+}
+
+base {
+    archivesName = 'orbis-terrae-compatibility-api'
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbis-terrae.invalid/schemas/world-manifest.schema.json",
+  "title": "Orbis Terrae World Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatorVersion",
+    "atlasVersion",
+    "profileHash",
+    "seed",
+    "createdAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "generatorVersion": {
+      "type": "string"
+    },
+    "atlasVersion": {
+      "type": "string"
+    },
+    "profileHash": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "compatibilityMappings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "migrationHistory": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

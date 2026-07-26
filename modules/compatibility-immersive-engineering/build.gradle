@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':modules:compatibility-api')
+}
+
+base {
+    archivesName = 'orbis-terrae-compat-immersive-engineering'
+}

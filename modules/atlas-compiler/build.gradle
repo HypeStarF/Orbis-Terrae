@@ -1,0 +1,15 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':modules:atlas-api')
+}
+
+application {
+    mainClass = 'me.sdmannen.orbis_terrae.atlas.compiler.AtlasCompilerMain'
+}
+
+base {
+    archivesName = 'orbis-terrae-atlas-compiler'
+}

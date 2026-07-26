@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbis-terrae.invalid/schemas/atlas-manifest.schema.json",
+  "title": "Orbis Terrae Atlas Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "atlasId",
+    "atlasVersion",
+    "projection",
+    "tileSize",
+    "layers"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "atlasId": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "atlasVersion": {
+      "type": "string"
+    },
+    "projection": {
+      "type": "string",
+      "enum": [
+        "equirectangular"
+      ]
+    },
+    "tileSize": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "schemaVersion",
+          "encoding"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "encoding": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}
