@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "northern-europe-detailed-v1",
+  "atlasVersion": "1.0.0",
+  "compilerVersion": "0.1.0-SNAPSHOT",
+  "bounds": {
+    "west": -25.0,
+    "south": 54.0,
+    "east": 45.0,
+    "north": 72.0
+  },
+  "resolutionArcSeconds": 15,
+  "widthSamples": 16801,
+  "heightSamples": 4321,
+  "tileSize": 256,
+  "sourceLock": "../datasets/northern-europe-detailed-v1/sources.lock.json",
+  "outputArchive": "northern-europe-detailed-v1.zip",
+  "elevation": {
+    "resampling": "bilinear",
+    "maskWaterToZero": true
+  },
+  "landMask": {
+    "resampling": "near",
+    "landValues": [
+      1
+    ]
+  }
+}
