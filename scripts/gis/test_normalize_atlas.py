@@ -118,6 +118,7 @@ class NormalizeAtlasTest(unittest.TestCase):
                 ["-0.5", "-0.5", "2.5", "1.5"],
                 warp[position + 1:position + 5],
             )
+            self.assertIn("-q", warp)
 
     def test_verify_rejects_changed_raw_file(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -157,12 +158,12 @@ class NormalizeAtlasTest(unittest.TestCase):
                 bytes((0, 5, 9, 5, 0, 9)), "smoke land"
             )
             subprocess.run([
-                "gdal_translate", "--quiet", "-of", "GTiff", "-a_srs", "EPSG:4326",
+                "gdal_translate", "-q", "-of", "GTiff", "-a_srs", "EPSG:4326",
                 "-a_ullr", "-0.5", "1.5", "2.5", "-0.5",
                 str(root / "elevation.pgm"), str(root / "elevation.tif"),
             ], check=True)
             subprocess.run([
-                "gdal_translate", "--quiet", "-of", "GTiff", "-a_srs", "EPSG:4326",
+                "gdal_translate", "-q", "-of", "GTiff", "-a_srs", "EPSG:4326",
                 "-a_ullr", "-1", "1.25", "3", "-0.25",
                 str(root / "land.pgm"), str(root / "land-mask.tif"),
             ], check=True)
