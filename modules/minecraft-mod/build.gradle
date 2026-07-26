@@ -1,3 +1,4 @@
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 
@@ -71,8 +72,9 @@ neoForge {
     }
 }
 
+final Configuration localRuntime = configurations.maybeCreate('localRuntime')
 configurations.named('runtimeClasspath') {
-    extendsFrom(configurations.named('localRuntime').get())
+    extendsFrom(localRuntime)
 }
 
 dependencies {
