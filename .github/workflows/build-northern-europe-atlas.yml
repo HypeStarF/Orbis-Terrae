@@ -1,0 +1,70 @@
+name: Build Northern Europe Detailed Atlas
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-regional-atlas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Restore regional source cache
+        uses: actions/cache@v5
+        with:
+          path: build/regional-atlas-source-cache
+          key: northern-europe-detailed-v1-sources-${{ hashFiles('atlas/datasets/northern-europe-detailed-v1/sources.lock.json') }}
+
+      - name: Install GDAL raster tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gdal-bin python3-gdal python3-numpy
+          gdalinfo --version
+          gdal_calc.py --help > /dev/null
+
+      - name: Build Northern Europe detailed atlas
+        shell: bash
+        run: |
+          set -o pipefail
+          chmod +x gradlew
+          python scripts/gis/build_northern_europe_detailed_atlas.py plan | tee northern-europe-plan.json
+          python scripts/gis/build_northern_europe_detailed_atlas.py \
+            build build/northern-europe-detailed-v1 \
+            --cache build/regional-atlas-source-cache \
+            2>&1 | tee northern-europe-build.log
+          python scripts/gis/build_northern_europe_detailed_atlas.py \
+            verify build/northern-europe-detailed-v1/northern-europe-detailed-v1.zip
+          sha256sum build/northern-europe-detailed-v1/northern-europe-detailed-v1.zip \
+            | tee northern-europe-archive.sha256
+
+      - name: Upload Northern Europe atlas
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: northern-europe-detailed-v1
+          path: |
+            build/northern-europe-detailed-v1/atlas
+            build/northern-europe-detailed-v1/northern-europe-detailed-v1.zip
+            northern-europe-plan.json
+            northern-europe-build.log
+            northern-europe-archive.sha256
+          if-no-files-found: error
+          retention-days: 30
