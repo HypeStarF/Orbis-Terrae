@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -119,7 +120,8 @@ final class AtlasDirectoryTest {
                 NoSuchFileException.class,
                 () -> atlas.requireElevationLayer("elevation").readElevationTile(1, 0));
 
-        assertTrue(exception.getFile().endsWith("layers/elevation/0/1/0.otat"));
+        assertTrue(Path.of(exception.getFile()).endsWith(
+                Path.of("layers", "elevation", "0", "1", "0.otat")));
         assertTrue(exception.getReason().contains("Missing tile for layer elevation"));
     }
 
@@ -169,6 +171,38 @@ final class AtlasDirectoryTest {
                 () -> atlas.requireElevationLayer("elevation").readElevationTile(0, 0));
 
         assertTrue(exception.getMessage().contains("CRC32"));
+    }
+
+    @Test
+    void rejectsTileSymbolicLinkOutsideAtlasRoot() throws Exception {
+        Path root = createAtlas("tile-link-atlas");
+        Path externalTile = temporaryDirectory.resolve("external-tile.otat");
+        Files.write(externalTile, tileWriter.encodeElevation(2, ELEVATION_SAMPLES));
+        createSymbolicLinkOrSkip(elevationTilePath(root), externalTile.toAbsolutePath());
+        AtlasDirectory atlas = AtlasDirectory.open(root);
+
+        AtlasAccessException exception = assertThrows(
+                AtlasAccessException.class,
+                () -> atlas.requireElevationLayer("elevation").readElevationTile(0, 0));
+
+        assertTrue(exception.getMessage().contains("outside the atlas directory"));
+    }
+
+    @Test
+    void rejectsManifestSymbolicLinkOutsideAtlasRoot() throws Exception {
+        Path root = temporaryDirectory.resolve("manifest-link-atlas");
+        Files.createDirectories(root);
+        Path externalManifest = temporaryDirectory.resolve("external-manifest.json");
+        AtlasManifestJson.write(externalManifest, manifest());
+        createSymbolicLinkOrSkip(
+                root.resolve(AtlasDirectory.MANIFEST_FILE_NAME),
+                externalManifest.toAbsolutePath());
+
+        AtlasAccessException exception = assertThrows(
+                AtlasAccessException.class,
+                () -> AtlasDirectory.open(root));
+
+        assertTrue(exception.getMessage().contains("manifest resolves outside"));
     }
 
     @Test
@@ -222,6 +256,16 @@ final class AtlasDirectoryTest {
     private static void writeTile(Path path, byte[] bytes) throws IOException {
         Files.createDirectories(path.getParent());
         Files.write(path, bytes);
+    }
+
+    private static void createSymbolicLinkOrSkip(Path link, Path target) throws IOException {
+        Files.createDirectories(link.getParent());
+        Files.deleteIfExists(link);
+        try {
+            Files.createSymbolicLink(link, target);
+        } catch (IOException | UnsupportedOperationException | SecurityException exception) {
+            assumeTrue(false, "Symbolic links unavailable: " + exception.getMessage());
+        }
     }
 
     private static AtlasManifest manifest() {
