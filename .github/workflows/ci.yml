@@ -28,7 +28,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Verify Phase 0
-        run: ./gradlew clean phase0Check --stacktrace
+        run: ./gradlew clean phase0Check --warning-mode=fail --stacktrace
 
       - name: Upload build reports
         if: always()
