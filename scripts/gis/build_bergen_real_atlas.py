@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 DATASET_ID = "bergen-real-v1"
+ARCHIVE_NAME = f"{DATASET_ID}.zip"
 WIDTH = 256
 HEIGHT = 256
 TILE_SIZE = 64
@@ -30,6 +31,7 @@ BOUNDS = {
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_LOCK = REPO_ROOT / "atlas/datasets/bergen-real-v1/sources.lock.json"
 NORMALIZER = REPO_ROOT / "scripts/gis/normalize_atlas.py"
+ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 
 
 class Error(RuntimeError):
@@ -99,6 +101,8 @@ def load_lock(path: Path) -> tuple[dict[str, Any], tuple[Source, ...]]:
         raise Error("Source lock bounds do not match the fixture contract")
     if document.get("widthSamples") != WIDTH or document.get("heightSamples") != HEIGHT:
         raise Error("Source lock raster dimensions do not match the fixture contract")
+    if document.get("tileSize") != TILE_SIZE:
+        raise Error("Source lock tile size does not match the fixture contract")
     sources_value = document.get("sources")
     if not isinstance(sources_value, list) or len(sources_value) != 3:
         raise Error("Source lock must contain exactly three sources")
@@ -354,10 +358,11 @@ def copy_metadata(
         updated["sha256"] = actual_hashes[value["id"]]
         resolved_sources.append(updated)
     resolved_lock["sources"] = resolved_sources
+    source_ids = {value["id"] for value in lock_document["sources"]}
     resolved_lock["derivedFiles"] = {
         key: actual_hashes[key]
         for key in sorted(actual_hashes)
-        if key not in {value["id"] for value in lock_document["sources"]}
+        if key not in source_ids
     }
     write_json(metadata / "sources.lock.json", resolved_lock)
     (atlas / "ATTRIBUTION.md").write_text(
@@ -379,6 +384,45 @@ def write_fixture_checksums(atlas: Path) -> None:
         if path.is_file() and path != checksum_file:
             lines.append(f"{sha256(path)}  {path.relative_to(atlas).as_posix()}")
     checksum_file.write_text("\n".join(lines) + "\n", encoding="ascii", newline="\n")
+
+
+def write_archive(atlas: Path, archive_path: Path) -> None:
+    with zipfile.ZipFile(
+        archive_path,
+        "w",
+        compression=zipfile.ZIP_DEFLATED,
+        compresslevel=9,
+    ) as archive:
+        for path in sorted(atlas.rglob("*")):
+            if not path.is_file():
+                continue
+            relative = path.relative_to(atlas).as_posix()
+            info = zipfile.ZipInfo(relative, date_time=ZIP_TIMESTAMP)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.create_system = 3
+            info.external_attr = (0o100644 & 0xFFFF) << 16
+            info.flag_bits |= 0x800
+            archive.writestr(
+                info,
+                path.read_bytes(),
+                compress_type=zipfile.ZIP_DEFLATED,
+                compresslevel=9,
+            )
+
+
+def extract_archive(archive_path: Path, destination: Path) -> None:
+    destination = destination.resolve()
+    destination.mkdir(parents=True)
+    with zipfile.ZipFile(archive_path) as archive:
+        for info in archive.infolist():
+            if info.is_dir():
+                continue
+            target = (destination / info.filename).resolve()
+            if not target.is_relative_to(destination):
+                raise Error(f"Archive contains an unsafe path: {info.filename}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with archive.open(info) as source, target.open("wb") as output:
+                shutil.copyfileobj(source, output)
 
 
 def verify_fixture(atlas: Path) -> None:
@@ -427,6 +471,15 @@ def verify_fixture(atlas: Path) -> None:
             raise Error(f"Unexpected {layer_id} tile count: {len(tiles)}")
 
 
+def verify_archive(archive_path: Path) -> None:
+    if not archive_path.is_file():
+        raise Error(f"Missing fixture archive: {archive_path}")
+    with tempfile.TemporaryDirectory() as directory:
+        extracted = Path(directory) / DATASET_ID
+        extract_archive(archive_path, extracted)
+        verify_fixture(extracted)
+
+
 def compare_directories(expected: Path, actual: Path) -> None:
     verify_fixture(expected)
     verify_fixture(actual)
@@ -447,6 +500,19 @@ def compare_directories(expected: Path, actual: Path) -> None:
             if expected_files.get(path) != actual_files.get(path)
         )
         raise Error(f"Generated fixture differs from checked-in fixture: {changed}")
+
+
+def compare_fixture(expected: Path, actual_atlas: Path, actual_archive: Path) -> None:
+    expected = expected.resolve()
+    if expected.suffix.lower() == ".zip":
+        verify_archive(expected)
+        if expected.read_bytes() != actual_archive.read_bytes():
+            raise Error(
+                "Generated fixture archive differs from checked-in fixture: "
+                f"expected {sha256(expected)}, got {sha256(actual_archive)}"
+            )
+    else:
+        compare_directories(expected, actual_atlas)
 
 
 def build(
@@ -482,9 +548,13 @@ def build(
         compile_atlas(normalized, atlas)
         copy_metadata(atlas, normalized, lock_document, actual_hashes)
         verify_fixture(atlas)
+        archive = output_root / ARCHIVE_NAME
+        write_archive(atlas, archive)
+        verify_archive(archive)
         if compare is not None:
-            compare_directories(compare.resolve(), atlas)
+            compare_fixture(compare, atlas, archive)
         print(f"Built {DATASET_ID} at {atlas}")
+        print(f"Created deterministic fixture archive {archive}")
     except BaseException:
         shutil.rmtree(output_root, ignore_errors=True)
         raise
@@ -504,7 +574,7 @@ def parse_args() -> argparse.Namespace:
     build_parser.add_argument("--require-locked", action="store_true")
     build_parser.add_argument("--compare", type=Path)
     verify_parser = subparsers.add_parser("verify")
-    verify_parser.add_argument("atlas", type=Path)
+    verify_parser.add_argument("fixture", type=Path)
     return parser.parse_args()
 
 
@@ -517,6 +587,7 @@ def main() -> int:
                 json.dumps(
                     {
                         "datasetId": DATASET_ID,
+                        "archiveName": ARCHIVE_NAME,
                         "bounds": BOUNDS,
                         "widthSamples": WIDTH,
                         "heightSamples": HEIGHT,
@@ -535,9 +606,12 @@ def main() -> int:
                 require_locked=arguments.require_locked,
                 compare=arguments.compare,
             )
+        elif arguments.fixture.suffix.lower() == ".zip":
+            verify_archive(arguments.fixture.resolve())
+            print(f"Valid {DATASET_ID} archive {arguments.fixture.resolve()}")
         else:
-            verify_fixture(arguments.atlas)
-            print(f"Valid {DATASET_ID} fixture {arguments.atlas.resolve()}")
+            verify_fixture(arguments.fixture)
+            print(f"Valid {DATASET_ID} fixture {arguments.fixture.resolve()}")
     except Error as exception:
         print(f"error: {exception}", file=sys.stderr)
         return 1
