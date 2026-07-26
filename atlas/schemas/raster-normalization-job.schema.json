@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbis-terrae.invalid/schemas/raster-normalization-job.schema.json",
+  "title": "Orbis Terrae raster normalization job",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "atlas",
+    "elevation",
+    "landMask"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "atlas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "compilerVersion",
+        "bounds",
+        "tileSize"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compilerVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bounds": {
+          "$ref": "#/$defs/bounds"
+        },
+        "tileSize": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 4096
+        }
+      }
+    },
+    "elevation": {
+      "$ref": "#/$defs/elevationLayer"
+    },
+    "landMask": {
+      "$ref": "#/$defs/landMaskLayer"
+    }
+  },
+  "$defs": {
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "west",
+        "south",
+        "east",
+        "north"
+      ],
+      "properties": {
+        "west": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "south": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "east": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "north": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        }
+      }
+    },
+    "elevationLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "widthSamples",
+        "heightSamples",
+        "provenance"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "widthSamples": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "heightSamples": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "sourceNoData": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "resampling": {
+          "enum": [
+            "near",
+            "bilinear",
+            "cubic",
+            "cubicspline",
+            "lanczos",
+            "average",
+            "mode"
+          ],
+          "default": "bilinear"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "landMaskLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "widthSamples",
+        "heightSamples",
+        "landValues",
+        "provenance"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "widthSamples": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "heightSamples": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "sourceNoData": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "resampling": {
+          "enum": [
+            "near",
+            "bilinear",
+            "cubic",
+            "cubicspline",
+            "lanczos",
+            "average",
+            "mode"
+          ],
+          "default": "near"
+        },
+        "landValues": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "title",
+        "datasetVersion",
+        "licence",
+        "attribution",
+        "sourceUrl",
+        "retrievedDate",
+        "processing"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "datasetVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "licence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attribution": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://"
+        },
+        "retrievedDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "processing": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

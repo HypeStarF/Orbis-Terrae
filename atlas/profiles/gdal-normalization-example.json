@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "atlas": {
+    "id": "northern-europe-gdal-example",
+    "version": "0.1.0",
+    "compilerVersion": "0.1.0-SNAPSHOT",
+    "bounds": {
+      "west": -25.0,
+      "south": 54.0,
+      "east": 45.0,
+      "north": 72.0
+    },
+    "tileSize": 256
+  },
+  "elevation": {
+    "source": "../local/sources/northern-europe-elevation.tif",
+    "widthSamples": 1401,
+    "heightSamples": 361,
+    "sourceNoData": null,
+    "resampling": "bilinear",
+    "provenance": {
+      "sourceId": "replace-elevation-source",
+      "title": "Replace with reviewed elevation dataset title",
+      "datasetVersion": "replace-with-dataset-version",
+      "licence": "Replace after redistribution and attribution review",
+      "attribution": "Replace with required attribution",
+      "sourceUrl": "https://example.invalid/elevation-source",
+      "retrievedDate": "2026-07-26",
+      "processing": [
+        "Source file placed under atlas/local after licence review",
+        "Source CRS and vertical datum inspected before normalization"
+      ]
+    }
+  },
+  "landMask": {
+    "source": "../local/sources/northern-europe-land-mask.tif",
+    "widthSamples": 1401,
+    "heightSamples": 361,
+    "sourceNoData": null,
+    "resampling": "near",
+    "landValues": [
+      1
+    ],
+    "provenance": {
+      "sourceId": "replace-land-mask-source",
+      "title": "Replace with reviewed land-mask dataset title",
+      "datasetVersion": "replace-with-dataset-version",
+      "licence": "Replace after redistribution and attribution review",
+      "attribution": "Replace with required attribution",
+      "sourceUrl": "https://example.invalid/land-mask-source",
+      "retrievedDate": "2026-07-26",
+      "processing": [
+        "Source file placed under atlas/local after licence review",
+        "Source classes reviewed and landValues configured explicitly"
+      ]
+    }
+  }
+}

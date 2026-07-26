@@ -24,6 +24,23 @@ jobs:
           java-version: '21'
           cache: gradle
 
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gdal-bin
+          gdalinfo --version
+
+      - name: Verify GIS normalization tool
+        run: |
+          python -m py_compile scripts/gis/normalize_atlas.py
+          python -m unittest discover -s scripts/gis -p 'test_*.py'
+          python scripts/gis/normalize_atlas.py plan atlas/profiles/gdal-normalization-example.json > /dev/null
+
       - name: Make Gradle launcher executable
         run: chmod +x gradlew
 
@@ -71,6 +88,18 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: gradle
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Run GIS normalization tests
+        shell: pwsh
+        run: |
+          python -m py_compile scripts/gis/normalize_atlas.py
+          python -m unittest discover -s scripts/gis -p "test_*.py"
+          python scripts/gis/normalize_atlas.py plan atlas/profiles/gdal-normalization-example.json | Out-Null
 
       - name: Run atlas tests
         shell: pwsh
