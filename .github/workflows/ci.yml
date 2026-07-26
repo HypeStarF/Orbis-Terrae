@@ -36,10 +36,22 @@ jobs:
           gdalinfo --version
 
       - name: Verify GIS normalization tool
+        shell: bash
         run: |
-          python -m py_compile scripts/gis/normalize_atlas.py
-          python -m unittest discover -s scripts/gis -p 'test_*.py'
-          python scripts/gis/normalize_atlas.py plan atlas/profiles/gdal-normalization-example.json > /dev/null
+          set -o pipefail
+          {
+            python -m py_compile scripts/gis/normalize_atlas.py
+            python -m unittest discover -s scripts/gis -p 'test_*.py' -v
+            python scripts/gis/normalize_atlas.py plan atlas/profiles/gdal-normalization-example.json > /dev/null
+          } 2>&1 | tee gis-normalization.log
+
+      - name: Upload GIS normalization log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gis-normalization-log
+          path: gis-normalization.log
+          if-no-files-found: error
 
       - name: Make Gradle launcher executable
         run: chmod +x gradlew
@@ -64,7 +76,7 @@ jobs:
         with:
           name: gradle-build-log
           path: gradle-build.log
-          if-no-files-found: error
+          if-no-files-found: ignore
 
       - name: Upload build reports
         if: always()
