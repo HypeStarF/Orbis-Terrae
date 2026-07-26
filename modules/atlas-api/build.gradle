@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.jackson.databind)
+    api(libs.jackson.databind)
 }
 
 sourceSets {
