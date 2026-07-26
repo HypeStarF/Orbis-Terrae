@@ -1,8 +1,11 @@
 # Phase 0 acceptance checklist
 
-**Status:** Complete  
-**Accepted on:** 2026-07-26  
-**Accepted by:** HypeStarF  
+**Status:** Complete
+
+**Accepted on:** 2026-07-26
+
+**Accepted by:** HypeStarF
+
 **Checklist completion commit:** `04bcbfeb13916218f83a4cc8ec721387bebcc645`
 
 This checklist was completed on the primary development machine and the intended dedicated server.
