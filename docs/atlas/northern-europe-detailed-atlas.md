@@ -24,14 +24,14 @@ to Git. Source control retains the profiles, pinned source lock, builder, tests 
 | Projection | EPSG:4326 equirectangular |
 
 The resolution is approximately 463 metres north-to-south. East-to-west spacing decreases with
-latitude, from roughly 516 metres at 54°N to roughly 286 metres at 72°N. This is a regional prototype
+latitude, from roughly 272 metres at 54°N to roughly 143 metres at 72°N. This is a regional prototype
 resolution, not the final limit for later country or fjord overrides.
 
 ## Reviewed sources
 
 ### Elevation
 
-- Dataset: NOAA NCEI ETOPO 2022 15 Arc-Second Bedrock Elevation
+- Dataset: NOAA NCEI ETOPO 2022 15 Arc-Second Surface Elevation
 - Release: 2022 v1
 - CRS: EPSG:4326
 - Vertical datum: EGM2008 height
@@ -39,10 +39,14 @@ resolution, not the final limit for later country or fjord overrides.
 - Citation: NOAA National Centers for Environmental Information. 2022: ETOPO 2022 15 Arc-Second
   Global Relief Model. DOI `10.25921/fd45-gt74`.
 
-Ten official 15° × 15° GeoTIFF tiles cover the regional bounds. The source lock records every URL and
-SHA-256 digest. ETOPO includes both land elevation and ocean bathymetry, but the current atlas schema
-keeps these concepts separate. The builder therefore applies the land mask and writes valid ocean
-samples as zero in the elevation layer. A dedicated bathymetry layer remains a later milestone.
+Twelve official 15° × 15° GeoTIFF tiles cover the regional bounds, including the half-sample-expanded
+processing extent. The source lock records every URL and SHA-256 digest. ETOPO surface elevation
+includes both land elevation and ocean bathymetry, but the current atlas schema keeps these concepts
+separate. The builder therefore applies the land mask and writes valid ocean samples as zero in the
+elevation layer. A dedicated bathymetry layer remains a later milestone.
+
+The tile names identify each source tile's southwest corner. The required rows are `N45` and `N60`, with
+longitude columns `W030`, `W015`, `E000`, `E015`, `E030` and `E045` in each row.
 
 ### Land mask
 
@@ -71,8 +75,8 @@ sample before invoking GDAL, matching the runtime coordinate conversion exactly.
 python scripts/gis/build_northern_europe_detailed_atlas.py plan
 ```
 
-The plan reports dimensions, raw byte counts, tile rows/columns, source count, unresolved source hashes
-and exact GDAL pixel-edge bounds without downloading data.
+The plan reports dimensions, raw byte counts, tile rows/columns, source count, source-lock status and
+exact GDAL pixel-edge bounds without downloading data.
 
 Plan the CI smoke profile:
 
@@ -84,7 +88,7 @@ python scripts/gis/build_northern_europe_detailed_atlas.py \
 
 ## Source lock resolution
 
-Source downloads are cached outside the output directory. To create or refresh a lock:
+Source downloads are cached outside the output directory. To audit or deliberately refresh a lock:
 
 ```bash
 python scripts/gis/build_northern_europe_detailed_atlas.py \
@@ -93,7 +97,7 @@ python scripts/gis/build_northern_europe_detailed_atlas.py \
 ```
 
 Review every changed URL and digest before replacing the checked-in lock. A normal build rejects any
-source without a pinned digest.
+source without a pinned digest and rejects downloaded bytes that do not match the lock.
 
 ## Building the release atlas
 
@@ -106,7 +110,7 @@ python scripts/gis/build_northern_europe_detailed_atlas.py \
 The build performs these stages:
 
 1. Verify and reuse or download all pinned source files.
-2. Build a VRT mosaic from the ten ETOPO tiles.
+2. Build a VRT mosaic from the twelve ETOPO tiles.
 3. Rasterize Natural Earth land polygons onto the exact target grid.
 4. Align ETOPO to the target sample-centre grid with exact coordinate transformation.
 5. Mask ocean elevation to zero using the land mask.
@@ -153,8 +157,8 @@ archive equality.
 ## CI and release workflow
 
 Normal Linux and Windows CI validate profile parsing, source-lock rules, grid geometry, deterministic ZIP
-metadata and both profile plans. A real-data Linux smoke job downloads one ETOPO tile plus Natural Earth,
-then normalizes and compiles the one-degree Icelandic profile.
+metadata and both profile plans. A real-data Linux smoke job downloads the pinned Iceland ETOPO tile plus
+Natural Earth, then normalizes, compiles and verifies the one-degree Icelandic atlas.
 
 `.github/workflows/build-northern-europe-atlas.yml` is manually triggered for the release profile. It uses
 an external source cache, builds the full archive and uploads the atlas directory, ZIP, resolved source
