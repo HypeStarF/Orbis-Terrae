@@ -8,14 +8,14 @@ Record results in `docs/phase-0/verification-record.md`.
 - [ ] `java -version` reports Java 21.
 - [ ] `./gradlew wrapper --gradle-version 9.2.1` generates the canonical wrapper JAR and scripts.
 - [ ] The canonical wrapper changes are committed.
-- [ ] `./gradlew clean phase0Check` succeeds from a clean checkout.
-- [ ] A second `./gradlew phase0Check` succeeds with the configuration cache.
+- [ ] `./gradlew clean phase0Check --no-configuration-cache --warning-mode=fail` succeeds from a clean checkout.
+- [ ] A second `./gradlew phase0Check --no-configuration-cache --warning-mode=fail` succeeds without cleaning.
 - [ ] CI succeeds on the default branch.
 - [ ] `git status --short` is empty after the checks.
 
 ## Client smoke test
 
-- [ ] Run `./gradlew :modules:minecraft-mod:runClient`.
+- [ ] Run `./gradlew :modules:minecraft-mod:runClient --no-configuration-cache`.
 - [ ] Minecraft reaches the title screen.
 - [ ] The Mods screen lists `Orbis Terrae` with mod ID `orbis_terrae`.
 - [ ] The log contains `Orbis Terrae common entry point loaded`.
@@ -24,7 +24,7 @@ Record results in `docs/phase-0/verification-record.md`.
 
 ## Dedicated-server smoke test
 
-- [ ] Run `./gradlew :modules:minecraft-mod:runServer` once.
+- [ ] Run `./gradlew :modules:minecraft-mod:runServer --no-configuration-cache` once.
 - [ ] Accept the Minecraft EULA only after reading it, then rerun if required.
 - [ ] The server reaches the normal ready state.
 - [ ] The log contains `Orbis Terrae common entry point loaded`.

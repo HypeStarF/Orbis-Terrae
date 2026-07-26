@@ -3,7 +3,7 @@ $Root = Resolve-Path (Join-Path $PSScriptRoot '..')
 Set-Location $Root
 
 java -version
-& .\gradlew.bat clean phase0Check --stacktrace
+& .\gradlew.bat clean phase0Check --no-configuration-cache --warning-mode=fail --stacktrace
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 git diff --check

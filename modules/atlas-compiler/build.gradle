@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':modules:atlas-api')
+    implementation(project(':modules:atlas-api'))
 }
 
 application {

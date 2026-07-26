@@ -5,7 +5,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$ROOT"
 
 java -version
-./gradlew clean phase0Check --stacktrace
+./gradlew clean phase0Check --no-configuration-cache --warning-mode=fail --stacktrace
 
 git diff --check
 if [ -n "$(git status --short)" ]; then

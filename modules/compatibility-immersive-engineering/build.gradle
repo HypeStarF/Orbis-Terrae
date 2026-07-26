@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api project(':modules:compatibility-api')
+    api(project(':modules:compatibility-api'))
 }
 
 base {

@@ -1,89 +1,111 @@
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskProvider
+
 plugins {
     id 'java-library'
-    id 'net.neoforged.moddev' version "${moddevgradle_version}"
+    id 'net.neoforged.moddev'
     id 'idea'
 }
 
+final Provider<String> artifactId = providers.gradleProperty('artifact_id')
+final Provider<String> modId = providers.gradleProperty('mod_id')
+final Provider<String> neoVersion = providers.gradleProperty('neo_version')
+final Provider<String> parchmentMappingsVersion = providers.gradleProperty('parchment_mappings_version')
+final Provider<String> parchmentMinecraftVersion = providers.gradleProperty('parchment_minecraft_version')
+
 base {
-    archivesName = project.artifact_id
+    archivesName = artifactId.get()
 }
 
-sourceSets.main.resources {
-    srcDir 'src/generated/resources'
+sourceSets.named('main') {
+    resources {
+        srcDir('src/generated/resources')
+    }
 }
 
 neoForge {
-    version = project.neo_version
+    version = neoVersion.get()
 
     parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
+        mappingsVersion = parchmentMappingsVersion.get()
+        minecraftVersion = parchmentMinecraftVersion.get()
     }
 
     runs {
         client {
             client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty('neoforge.enabledGameTestNamespaces', modId.get())
         }
 
         server {
             server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            programArgument('--nogui')
+            systemProperty('neoforge.enabledGameTestNamespaces', modId.get())
         }
 
         gameTestServer {
             type = 'gameTestServer'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty('neoforge.enabledGameTestNamespaces', modId.get())
         }
 
         data {
             data()
-            programArguments.addAll '--mod', project.mod_id, '--all',
+            programArguments.addAll(
+                    '--mod', modId.get(),
+                    '--all',
                     '--output', file('src/generated/resources').absolutePath,
                     '--existing', file('src/main/resources').absolutePath
+            )
         }
 
         configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty('forge.logging.markers', 'REGISTRIES')
             logLevel = org.slf4j.event.Level.INFO
         }
     }
 
     mods {
-        "${mod_id}" {
-            sourceSet sourceSets.main
+        "${modId.get()}" {
+            sourceSet(sourceSets.named('main').get())
         }
     }
 }
 
-configurations {
-    runtimeClasspath.extendsFrom localRuntime
+final Configuration localRuntime = configurations.maybeCreate('localRuntime')
+configurations.named('runtimeClasspath') {
+    extendsFrom(localRuntime)
 }
 
 dependencies {
-    implementation project(':modules:atlas-api')
-    implementation project(':modules:compatibility-api')
+    implementation(project(':modules:atlas-api'))
+    implementation(project(':modules:compatibility-api'))
 }
 
-def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
-    def replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            mod_authors            : mod_authors,
-            mod_description        : mod_description
-    ]
-    inputs.properties replaceProperties
-    expand replaceProperties
-    from 'src/main/templates'
-    into layout.buildDirectory.dir('generated/sources/modMetadata')
+final Map<String, String> modMetadataProperties = [
+        minecraft_version      : providers.gradleProperty('minecraft_version').get(),
+        minecraft_version_range: providers.gradleProperty('minecraft_version_range').get(),
+        neo_version            : neoVersion.get(),
+        loader_version_range   : providers.gradleProperty('loader_version_range').get(),
+        mod_id                 : modId.get(),
+        mod_name               : providers.gradleProperty('mod_name').get(),
+        mod_license            : providers.gradleProperty('mod_license').get(),
+        mod_version            : providers.gradleProperty('mod_version').get(),
+        mod_authors            : providers.gradleProperty('mod_authors').get(),
+        mod_description        : providers.gradleProperty('mod_description').get()
+]
+
+final TaskProvider<ProcessResources> generateModMetadata = tasks.register(
+        'generateModMetadata',
+        ProcessResources
+) {
+    inputs.properties(modMetadataProperties)
+    expand(modMetadataProperties)
+    from('src/main/templates')
+    into(layout.buildDirectory.dir('generated/sources/modMetadata'))
 }
 
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
+sourceSets.named('main') {
+    resources.srcDir(generateModMetadata)
+}
+neoForge.ideSyncTask(generateModMetadata)
