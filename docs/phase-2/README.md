@@ -21,7 +21,7 @@ is `0.2.x — Terrain Alpha`.
 1. [World profile, projection, vertical curve, and manifest foundation](step-01-world-foundation.md)
 2. [Register biome-source and chunk-generator codecs](step-02-worldgen-codecs.md)
 3. [Add the Earth world preset and minimal biome selection](step-03-earth-world-preset.md)
-4. Sample atlas elevation and land mask during chunk generation
+4. [Install the bundled atlas and sample elevation and land mask](step-04-atlas-sampling.md)
 5. Fill deterministic land and ocean terrain columns
 6. Disable artificial structures and add safe geographic spawn selection
 7. Add chunk determinism, save/reload, client, and dedicated-server validation
@@ -37,6 +37,6 @@ Phase 2 closes only when:
 - singleplayer and dedicated server both work;
 - no runtime internet access is required.
 
-Steps 1 through 3 establish immutable configuration, Minecraft serialization, and data-driven world-creation
-integration. Step 4 now connects those boundaries to the completed atlas runtime; deterministic terrain filling
-follows in Step 5.
+Steps 1 through 4 now establish immutable configuration, Minecraft serialization, data-driven world creation,
+offline atlas installation, and deterministic column sampling. Step 5 consumes those contracts to place the first
+land, seabed, ocean, and air blocks.

@@ -72,7 +72,8 @@ public final class EarthCoordinateMapper {
     }
 
     private static double clampLatitude(double latitude) {
-        return Math.max(-90.0, Math.min(90.0, latitude));
+        double clamped = Math.max(-90.0, Math.min(90.0, latitude));
+        return clamped == 0.0 ? 0.0 : clamped;
     }
 
     /** Projected Minecraft block coordinate before integer chunk rounding. */

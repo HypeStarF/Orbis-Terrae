@@ -25,6 +25,12 @@ sourceSets.named('main') {
     }
 }
 
+tasks.named('processResources') {
+    from(rootProject.file('atlas/test-fixtures/bergen-real-v1.zip')) {
+        into('data/orbis_terrae/atlas')
+    }
+}
+
 neoForge {
     version = neoVersion.get()
 
@@ -148,6 +154,16 @@ tasks.register('phase2WorldPresetTest', Test) {
     classpath = sourceSets.test.runtimeClasspath
     filter {
         includeTestsMatching('me.sdmannen.orbis_terrae.Phase2WorldPresetTest')
+    }
+}
+
+tasks.register('phase2AtlasSamplingTest', Test) {
+    group = 'verification'
+    description = 'Runs the Phase 2 Minecraft-to-atlas sampling contract tests.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching('me.sdmannen.orbis_terrae.Phase2AtlasSamplingTest')
     }
 }
 

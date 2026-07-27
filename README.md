@@ -63,15 +63,16 @@ SHA-256 checksum.
 | `phase2FoundationCheck` | Phase 2 profile, projection, vertical-curve, and manifest contracts |
 | `phase2CodecCheck` | Phase 2 biome-source and chunk-generator codec contracts |
 | `phase2WorldPresetCheck` | Fast Earth dimension-type, world-preset, tag, and localization contracts |
-| `phase2WorldgenSmoke` | Headless NeoForge registry load and worldgen codec decoding |
+| `phase2AtlasSamplingCheck` | Bundled atlas installation and Minecraft-to-atlas column-sampling contracts |
+| `phase2WorldgenSmoke` | Headless NeoForge registry, codec, and bundled-atlas startup smoke |
 | `phase2Check` | Every Phase 2 check implemented so far, including the headless smoke |
 | `allChecks` | Every automated check across every module and phase, including the headless smoke |
 | `check` | Gradle's standard fast verification lifecycle without launching Minecraft |
 
 Use the narrowest phase task for focused development feedback. Use `allChecks` before pushing or merging.
 The focused contract tasks remain fast; `phase2WorldgenSmoke`, `phase2Check`, and `allChecks` launch the
-headless GameTest server to prove the dynamic worldgen registries decode inside Minecraft. Gradle still reuses
-up-to-date outputs and the build cache for unchanged compilation and test work.
+headless GameTest server to prove the dynamic worldgen registries and bundled atlas initialize inside Minecraft.
+Gradle still reuses up-to-date outputs and the build cache for unchanged compilation and test work.
 
 ## Project status
 
@@ -84,15 +85,15 @@ Phase 1 closed on 2026-07-27 after the atlas manifest, deterministic tile format
 regional and global atlas builds, runtime selection, corruption fallback, cache bounds, and performance
 exit audit were completed. See [`docs/phase-1/README.md`](docs/phase-1/README.md).
 
-Phase 2 now has immutable world profiles, centred equirectangular coordinate mapping, nonlinear vertical
-curves, world manifest schema v1, registered `orbis_terrae:earth` worldgen codecs, and a data-driven Earth
-world preset. The preset replaces the overworld stem, preserves the vanilla Nether and End, and uses a uniform
-plains biome until atlas land-mask sampling is connected in Step 4. See
+Phase 2 now has immutable world profiles, registered worldgen codecs, a data-driven Earth world preset, and a
+common offline atlas runtime. The reviewed Bergen atlas is bundled and installed below the game directory;
+`OrbisChunkGenerator` can sample geographic coordinates, bilinear elevation, nearest land mask, transformed
+terrain Y, and supplying atlas IDs. Step 5 fills deterministic terrain columns from these samples. See
 [`docs/phase-2/README.md`](docs/phase-2/README.md).
 
 ## Modules
 
-- `minecraft-mod`: NeoForge entry point, Earth profiles, manifests, worldgen codecs, preset data, and run configurations.
+- `minecraft-mod`: NeoForge entry point, Earth profiles, manifests, worldgen codecs, atlas runtime, and preset data.
 - `atlas-api`: Minecraft-independent tile format, strict atlas manifest, coordinate sampling, and cache.
 - `atlas-compiler`: command-line packer and manifest validator/canonicalizer.
 - `compatibility-api`: stable compatibility contracts.

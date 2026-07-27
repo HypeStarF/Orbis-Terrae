@@ -2,6 +2,8 @@ package me.sdmannen.orbis_terrae;
 
 import com.mojang.logging.LogUtils;
 import me.sdmannen.orbis_terrae.worldgen.OrbisWorldgenRegistries;
+import me.sdmannen.orbis_terrae.worldgen.atlas.OrbisAtlasRuntime;
+import me.sdmannen.orbis_terrae.worldgen.atlas.OrbisAtlasRuntimeManager;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -15,6 +17,7 @@ public final class OrbisTerrae {
 
     public OrbisTerrae(IEventBus modEventBus, ModContainer modContainer) {
         OrbisWorldgenRegistries.register(modEventBus);
-        LOGGER.info("Orbis Terrae common entry point loaded");
+        OrbisAtlasRuntime atlasRuntime = OrbisAtlasRuntimeManager.initialize();
+        LOGGER.info("Orbis Terrae common entry point loaded with atlases {}", atlasRuntime.atlasIds());
     }
 }
