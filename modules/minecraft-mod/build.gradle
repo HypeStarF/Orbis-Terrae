@@ -8,6 +8,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.tasks.Jar
 
 static boolean nestedJarContainsClass(
         ZipFile outerJar,
@@ -132,23 +133,13 @@ dependencies {
     additionalRuntimeClasspath(project(':modules:compatibility-api'))
 }
 
-tasks.named('jar') {
-    archiveClassifier.set('slim')
-}
-
-final TaskProvider productionJar = tasks.named('jarJar') {
-    archiveClassifier.set('')
-}
-
-tasks.named('assemble') {
-    dependsOn(productionJar)
-}
+final TaskProvider<Jar> productionJar = tasks.named('jar', Jar)
 
 tasks.register('verifyProductionJar') {
     group = 'verification'
     description = 'Verifies that the installable mod JAR contains its internal runtime libraries.'
     dependsOn(productionJar)
-    inputs.file(productionJar.flatMap { task -> task.archiveFile })
+    inputs.file(productionJar.flatMap { Jar task -> task.archiveFile })
 
     doLast {
         File modJarFile = productionJar.get().archiveFile.get().asFile
