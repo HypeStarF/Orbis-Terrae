@@ -46,12 +46,17 @@ final class Phase2WorldPresetTest {
         JsonNode overworld = dimensions.path("minecraft:overworld");
         JsonNode generator = overworld.path("generator");
         JsonNode biomeSource = generator.path("biome_source");
+        JsonNode spawn = generator.path("spawn");
 
         assertEquals("orbis_terrae:earth", overworld.path("type").textValue());
         assertEquals("orbis_terrae:earth", generator.path("type").textValue());
         assertEquals("global-survival", generator.path("profile").textValue());
         assertEquals("orbis_terrae:earth", biomeSource.path("type").textValue());
         assertEquals("minecraft:plains", biomeSource.path("biome").textValue());
+        assertEquals("coordinates", spawn.path("mode").textValue());
+        assertEquals(60.3913, spawn.path("latitude").doubleValue());
+        assertEquals(5.3221, spawn.path("longitude").doubleValue());
+        assertEquals(64, spawn.path("search_radius_blocks").intValue());
 
         assertVanillaNoiseStem(
                 dimensions.path("minecraft:the_nether"),
