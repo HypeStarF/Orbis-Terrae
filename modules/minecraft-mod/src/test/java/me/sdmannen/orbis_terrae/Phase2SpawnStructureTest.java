@@ -5,15 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import me.sdmannen.orbis_terrae.profile.WorldProfile;
 import me.sdmannen.orbis_terrae.profile.WorldProfiles;
 import me.sdmannen.orbis_terrae.worldgen.TerrainColumnPlan;
+import me.sdmannen.orbis_terrae.worldgen.atlas.EarthAtlasSampler;
+import me.sdmannen.orbis_terrae.worldgen.atlas.OrbisAtlasRuntime;
 import me.sdmannen.orbis_terrae.worldgen.spawn.GeographicSpawnResolver;
 import me.sdmannen.orbis_terrae.worldgen.spawn.SpawnConfiguration;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 final class Phase2SpawnStructureTest {
     private static final Path MAIN_SOURCE = Path.of(
@@ -66,6 +70,33 @@ final class Phase2SpawnStructureTest {
                 (x, z) -> land(profile, Math.floorMod(x + z, 2) == 0 ? 70 : 90));
 
         assertTrue(resolution.isEmpty());
+    }
+
+    @Test
+    void bundledBergenTargetResolvesAgainstRealAtlas(@TempDir Path temporary) throws IOException {
+        WorldProfile profile = WorldProfiles.GLOBAL_SURVIVAL;
+        OrbisAtlasRuntime runtime = OrbisAtlasRuntime.openBundled(temporary.resolve("game"));
+        EarthAtlasSampler sampler = runtime.sampler(profile);
+
+        GeographicSpawnResolver.SpawnResolution resolution = GeographicSpawnResolver.resolve(
+                        profile,
+                        SpawnConfiguration.BUNDLED_BERGEN,
+                        (x, z) -> {
+                            try {
+                                return TerrainColumnPlan.from(profile, sampler.sample(x, z));
+                            } catch (IOException exception) {
+                                throw new UncheckedIOException(exception);
+                            }
+                        })
+                .orElseThrow();
+
+        assertEquals(SpawnConfiguration.BUNDLED_BERGEN, resolution.configuration());
+        assertTrue(resolution.searchDistanceBlocks()
+                <= SpawnConfiguration.BUNDLED_BERGEN.searchRadiusBlocks());
+        assertTrue(TerrainColumnPlan.from(
+                        profile,
+                        sampler.sample(resolution.blockX(), resolution.blockZ()))
+                .land());
     }
 
     @Test
