@@ -1,0 +1,48 @@
+name: Atlas Runtime Benchmark
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/atlas-runtime-benchmark.yml'
+      - 'modules/atlas-api/**'
+      - 'docs/phase-1/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Make Gradle launcher executable
+        run: chmod +x gradlew
+
+      - name: Run atlas runtime benchmark
+        env:
+          ATLAS_BENCHMARK_REPORT: ${{ github.workspace }}/modules/atlas-api/build/atlas-benchmark/report.json
+        run: >-
+          ./gradlew :modules:atlas-api:test
+          --tests me.sdmannen.orbis_terrae.atlas.benchmark.AtlasRuntimeBenchmarkTest
+          --no-configuration-cache
+          --warning-mode=fail
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v7
+        with:
+          name: atlas-runtime-benchmark
+          path: modules/atlas-api/build/atlas-benchmark/report.json
+          if-no-files-found: error
+          retention-days: 30
