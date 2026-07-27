@@ -4,6 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -13,11 +15,14 @@ import me.sdmannen.orbis_terrae.worldgen.atlas.EarthAtlasSampler;
 import me.sdmannen.orbis_terrae.worldgen.atlas.OrbisAtlasRuntimeManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.GenerationStep;
@@ -25,7 +30,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.blending.Blender;
 
-/** Serializable Earth generator with atlas sampling ready for deterministic terrain filling. */
+/** Serializable Earth generator that fills deterministic atlas-backed terrain columns. */
 public final class OrbisChunkGenerator extends ChunkGenerator {
     public static final MapCodec<OrbisChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
@@ -35,8 +40,9 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
                             .forGetter(generator -> generator.profile.id()))
                     .apply(instance, OrbisChunkGenerator::new));
 
-    private static final String TERRAIN_UNAVAILABLE =
-            "Orbis Terrae terrain filling is not implemented until Phase 2 Step 5";
+    private static final EnumSet<Heightmap.Types> GENERATED_HEIGHTMAPS = EnumSet.of(
+            Heightmap.Types.OCEAN_FLOOR_WG,
+            Heightmap.Types.WORLD_SURFACE_WG);
 
     private final WorldProfile profile;
     private transient volatile EarthAtlasSampler atlasSampler;
@@ -55,6 +61,17 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
         return atlasSampler().sample(blockX, blockZ);
     }
 
+    /** Resolves the complete deterministic terrain plan for one Minecraft block column. */
+    public TerrainColumnPlan planTerrainColumn(long blockX, long blockZ) {
+        try {
+            return TerrainColumnPlan.from(profile, sampleAtlasColumn(blockX, blockZ));
+        } catch (IOException exception) {
+            throw new UncheckedIOException(
+                    "Failed to sample Orbis Terrae atlas at " + blockX + ", " + blockZ,
+                    exception);
+        }
+    }
+
     @Override
     protected MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
@@ -69,7 +86,7 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
             StructureManager structureManager,
             ChunkAccess chunk,
             GenerationStep.Carving step) {
-        throw terrainUnavailable();
+        // Caves and terrain carving are deliberately deferred beyond the first solid-column prototype.
     }
 
     @Override
@@ -78,7 +95,7 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
             StructureManager structureManager,
             RandomState random,
             ChunkAccess chunk) {
-        throw terrainUnavailable();
+        // Grass, dirt, and seabed materials are placed directly during fillFromNoise.
     }
 
     @Override
@@ -87,12 +104,17 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
             RandomState randomState,
             StructureManager structureManager,
             ChunkAccess chunk) {
-        throw terrainUnavailable();
+        try {
+            fillChunk(chunk);
+            return CompletableFuture.completedFuture(chunk);
+        } catch (UncheckedIOException exception) {
+            return CompletableFuture.failedFuture(exception);
+        }
     }
 
     @Override
     public void spawnOriginalMobs(WorldGenRegion level) {
-        throw terrainUnavailable();
+        // Natural population is deferred until biome and spawn rules are introduced.
     }
 
     @Override
@@ -117,7 +139,11 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
             Heightmap.Types type,
             LevelHeightAccessor level,
             RandomState random) {
-        throw terrainUnavailable();
+        TerrainColumnPlan plan = planTerrainColumn(x, z);
+        if (type == Heightmap.Types.OCEAN_FLOOR || type == Heightmap.Types.OCEAN_FLOOR_WG) {
+            return plan.oceanFloorHeight();
+        }
+        return plan.worldSurfaceHeight();
     }
 
     @Override
@@ -126,7 +152,13 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
             int z,
             LevelHeightAccessor height,
             RandomState random) {
-        throw terrainUnavailable();
+        TerrainColumnPlan plan = planTerrainColumn(x, z);
+        int minimumY = height.getMinBuildHeight();
+        BlockState[] states = new BlockState[height.getHeight()];
+        for (int index = 0; index < states.length; index++) {
+            states[index] = blockState(plan.blockRoleAt(minimumY + index));
+        }
+        return new NoiseColumn(minimumY, states);
     }
 
     @Override
@@ -134,6 +166,7 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
         info.add("Orbis Terrae profile: " + profile.id());
         try {
             EarthAtlasSampler.ColumnSample sample = sampleAtlasColumn(pos.getX(), pos.getZ());
+            TerrainColumnPlan plan = TerrainColumnPlan.from(profile, sample);
             info.add(String.format(
                     Locale.ROOT,
                     "Orbis Terrae coordinate: %.5f, %.5f",
@@ -152,10 +185,36 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
                             + (landMask.land() ? "land" : "water")
                             + " (" + landMask.atlasId() + ")")
                     .orElse("Orbis Terrae land mask: unavailable"));
+            info.add("Orbis Terrae column: "
+                    + (plan.land() ? "land" : "ocean")
+                    + ", solid top Y " + plan.solidTopY()
+                    + ", data " + plan.dataAvailability().name().toLowerCase(Locale.ROOT));
         } catch (IOException exception) {
             info.add("Orbis Terrae atlas error: " + exception.getMessage());
         }
-        info.add("Orbis Terrae terrain filling: pending Phase 2 Step 5");
+    }
+
+    private void fillChunk(ChunkAccess chunk) {
+        ChunkPos chunkPosition = chunk.getPos();
+        int minimumY = Math.max(profile.minimumY(), chunk.getMinBuildHeight());
+        int maximumY = Math.min(profile.maximumY(), chunk.getMaxBuildHeight() - 1);
+        BlockPos.MutableBlockPos mutablePosition = new BlockPos.MutableBlockPos();
+
+        for (int localX = 0; localX < 16; localX++) {
+            int blockX = chunkPosition.getMinBlockX() + localX;
+            for (int localZ = 0; localZ < 16; localZ++) {
+                int blockZ = chunkPosition.getMinBlockZ() + localZ;
+                TerrainColumnPlan plan = planTerrainColumn(blockX, blockZ);
+                int highestY = Math.min(maximumY, plan.highestNonAirY());
+                for (int y = minimumY; y <= highestY; y++) {
+                    BlockState state = blockState(plan.blockRoleAt(y));
+                    if (!state.isAir()) {
+                        chunk.setBlockState(mutablePosition.set(blockX, y, blockZ), state, false);
+                    }
+                }
+            }
+        }
+        Heightmap.primeHeightmaps(chunk, GENERATED_HEIGHTMAPS);
     }
 
     private EarthAtlasSampler atlasSampler() {
@@ -173,7 +232,14 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
         }
     }
 
-    private static UnsupportedOperationException terrainUnavailable() {
-        return new UnsupportedOperationException(TERRAIN_UNAVAILABLE);
+    private static BlockState blockState(TerrainColumnPlan.BlockRole role) {
+        return switch (role) {
+            case STONE -> Blocks.STONE.defaultBlockState();
+            case DIRT -> Blocks.DIRT.defaultBlockState();
+            case GRASS -> Blocks.GRASS_BLOCK.defaultBlockState();
+            case SAND -> Blocks.SAND.defaultBlockState();
+            case WATER -> Blocks.WATER.defaultBlockState();
+            case AIR -> Blocks.AIR.defaultBlockState();
+        };
     }
 }

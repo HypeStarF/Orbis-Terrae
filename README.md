@@ -75,9 +75,10 @@ Install `modules/minecraft-mod/build/libs/orbis-terrae-0.2.0-SNAPSHOT.jar`. The 
 | `phase2CodecCheck` | Phase 2 biome-source and chunk-generator codec contracts |
 | `phase2WorldPresetCheck` | Fast Earth dimension-type, world-preset, tag, and localization contracts |
 | `phase2AtlasSamplingCheck` | Bundled atlas installation and Minecraft-to-atlas column-sampling contracts |
+| `phase2TerrainColumnCheck` | Land, seabed, ocean, air, heightmap, and missing-data terrain-column contracts |
 | `productionJarCheck` | Installable JAR, jar-in-jar metadata, bundled atlas, and nested runtime classes |
-| `phase2WorldgenSmoke` | Headless NeoForge registry, codec, and bundled-atlas startup smoke |
-| `phase2Check` | Every Phase 2 check implemented so far, including production packaging and headless smoke |
+| `phase2WorldgenSmoke` | Headless NeoForge registry, codec, bundled-atlas, and generator startup smoke |
+| `phase2Check` | Every Phase 2 check implemented so far, including terrain, production packaging, and headless smoke |
 | `allChecks` | Every automated check across every module and phase, including production packaging and headless smoke |
 | `check` | Gradle's standard fast verification lifecycle without launching Minecraft |
 
@@ -97,15 +98,16 @@ Phase 1 closed on 2026-07-27 after the atlas manifest, deterministic tile format
 regional and global atlas builds, runtime selection, corruption fallback, cache bounds, and performance
 exit audit were completed. See [`docs/phase-1/README.md`](docs/phase-1/README.md).
 
-Phase 2 now has immutable world profiles, registered worldgen codecs, a data-driven Earth world preset, and a
-common offline atlas runtime. The reviewed Bergen atlas is bundled and installed below the game directory;
-`OrbisChunkGenerator` can sample geographic coordinates, bilinear elevation, nearest land mask, transformed
-terrain Y, and supplying atlas IDs. Step 5 fills deterministic terrain columns from these samples. See
+Phase 2 now has immutable world profiles, registered worldgen codecs, a data-driven Earth world preset, a common
+offline atlas runtime, and deterministic terrain columns. `OrbisChunkGenerator` fills stone, land surfaces, sand
+seabeds, source water, and air from atlas samples while applying an explicit fallback-ocean policy outside bundled
+coverage. Step 6 disables artificial structures and adds safe geographic spawn selection. See
 [`docs/phase-2/README.md`](docs/phase-2/README.md).
 
 ## Modules
 
-- `minecraft-mod`: NeoForge entry point, Earth profiles, manifests, worldgen codecs, atlas runtime, and preset data.
+- `minecraft-mod`: NeoForge entry point, Earth profiles, manifests, worldgen codecs, atlas runtime, terrain columns,
+  and preset data.
 - `atlas-api`: Minecraft-independent tile format, strict atlas manifest, coordinate sampling, and cache.
 - `atlas-compiler`: command-line packer and manifest validator/canonicalizer.
 - `compatibility-api`: stable compatibility contracts.

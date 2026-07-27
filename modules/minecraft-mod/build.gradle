@@ -264,6 +264,16 @@ tasks.register('phase2AtlasSamplingTest', Test) {
     }
 }
 
+tasks.register('phase2TerrainColumnTest', Test) {
+    group = 'verification'
+    description = 'Runs the Phase 2 deterministic terrain-column contract tests.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching('me.sdmannen.orbis_terrae.Phase2TerrainColumnTest')
+    }
+}
+
 tasks.register('phase2WorldgenSmoke') {
     group = 'verification'
     description = 'Loads NeoForge headlessly to decode the Phase 2 world-generation registries.'
