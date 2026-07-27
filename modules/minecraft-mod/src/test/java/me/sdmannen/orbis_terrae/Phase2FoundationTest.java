@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.file.Path;
 import java.util.List;
 import me.sdmannen.orbis_terrae.atlas.api.GeoCoordinate;
 import me.sdmannen.orbis_terrae.geo.EarthCoordinateMapper;
@@ -13,7 +14,9 @@ import me.sdmannen.orbis_terrae.manifest.WorldManifest;
 import me.sdmannen.orbis_terrae.manifest.WorldManifestJson;
 import me.sdmannen.orbis_terrae.profile.WorldProfile;
 import me.sdmannen.orbis_terrae.profile.WorldProfiles;
+import me.sdmannen.orbis_terrae.worldgen.spawn.SpawnConfiguration;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 final class Phase2FoundationTest {
     @Test
@@ -62,35 +65,63 @@ final class Phase2FoundationTest {
     }
 
     @Test
-    void manifestRoundTripIsStrictAndConfigurationHashIsDeterministic() throws Exception {
+    void manifestRoundTripIsStrictAndConfigurationHashIsDeterministic(
+            @TempDir Path temporary) throws Exception {
+        SpawnConfiguration bergen = SpawnConfiguration.BUNDLED_BERGEN;
+        SpawnConfiguration stockholm = new SpawnConfiguration(59.3293, 18.0686, 96);
         WorldManifest first = WorldManifest.create(
                 "0.2.0-SNAPSHOT",
                 "global-coarse-v1",
                 WorldProfiles.GLOBAL_SURVIVAL,
+                bergen,
                 42L,
                 "2026-07-27T00:00:00Z");
         WorldManifest second = WorldManifest.create(
                 "0.2.0-SNAPSHOT",
                 "global-coarse-v1",
                 WorldProfiles.GLOBAL_SURVIVAL,
+                bergen,
                 42L,
                 "2026-07-27T00:00:00Z");
         WorldManifest compact = WorldManifest.create(
                 "0.2.0-SNAPSHOT",
                 "global-coarse-v1",
                 WorldProfiles.GLOBAL_COMPACT,
+                bergen,
+                42L,
+                "2026-07-27T00:00:00Z");
+        WorldManifest differentSeed = WorldManifest.create(
+                "0.2.0-SNAPSHOT",
+                "global-coarse-v1",
+                WorldProfiles.GLOBAL_SURVIVAL,
+                bergen,
+                43L,
+                "2026-07-27T00:00:00Z");
+        WorldManifest differentSpawn = WorldManifest.create(
+                "0.2.0-SNAPSHOT",
+                "global-coarse-v1",
+                WorldProfiles.GLOBAL_SURVIVAL,
+                stockholm,
                 42L,
                 "2026-07-27T00:00:00Z");
 
+        Path manifestPath = temporary.resolve("world").resolve("orbis_terrae").resolve("manifest.json");
+        WorldManifestJson.write(manifestPath, first);
         String encoded = WorldManifestJson.encode(first);
         int finalBrace = encoded.lastIndexOf('}');
         String unknownField = encoded.substring(0, finalBrace)
                 + ",\n  \"unexpected\" : true\n}\n";
+        String tamperedSeed = encoded.replace("\"worldSeed\" : 42", "\"worldSeed\" : 43");
 
         assertEquals(first, second);
         assertEquals(first, WorldManifestJson.decode(encoded));
+        assertEquals(first, WorldManifestJson.read(manifestPath));
+        assertEquals(bergen, first.spawn().toConfiguration());
         assertNotEquals(first.configurationHash(), compact.configurationHash());
+        assertNotEquals(first.configurationHash(), differentSeed.configurationHash());
+        assertNotEquals(first.configurationHash(), differentSpawn.configurationHash());
         assertThrows(JsonProcessingException.class, () -> WorldManifestJson.decode(unknownField));
+        assertThrows(JsonProcessingException.class, () -> WorldManifestJson.decode(tamperedSeed));
     }
 
     @Test
@@ -108,6 +139,7 @@ final class Phase2FoundationTest {
                         "atlas-v1",
                         WorldManifest.EQUIRECTANGULAR_PROJECTION,
                         WorldManifest.ProfileSnapshot.from(WorldProfiles.GLOBAL_SURVIVAL),
+                        WorldManifest.SpawnSnapshot.from(SpawnConfiguration.BUNDLED_BERGEN),
                         0L,
                         "0".repeat(64),
                         "2026-07-27T00:00:00Z"));
