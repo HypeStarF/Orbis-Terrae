@@ -19,7 +19,7 @@ is `0.2.x — Terrain Alpha`.
 ## Implementation sequence
 
 1. [World profile, projection, vertical curve, and manifest foundation](step-01-world-foundation.md)
-2. Register biome-source and chunk-generator codecs
+2. [Register biome-source and chunk-generator codecs](step-02-worldgen-codecs.md)
 3. Add the Orbis Terrae dimension and minimal biome selection
 4. Sample atlas elevation and land mask during chunk generation
 5. Fill deterministic land and ocean terrain columns
@@ -37,6 +37,6 @@ Phase 2 closes only when:
 - singleplayer and dedicated server both work;
 - no runtime internet access is required.
 
-The first step deliberately establishes Minecraft-independent configuration invariants before generator
-registration. This keeps scale, coordinate, vertical, and manifest behaviour directly unit-testable while
-the generator integration is developed.
+Steps 1 and 2 establish the immutable configuration and Minecraft serialization boundaries. Step 3 begins the
+playable integration by adding dimension data and minimal biome selection; atlas-backed terrain follows in
+Steps 4 and 5.
