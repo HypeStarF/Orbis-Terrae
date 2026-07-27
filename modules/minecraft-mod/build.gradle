@@ -1,7 +1,44 @@
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
+import java.util.Collections
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.testing.Test
+
+static boolean nestedJarContainsClass(
+        ZipFile outerJar,
+        List<ZipEntry> nestedJarEntries,
+        String classPath,
+        Path temporaryDirectory
+) {
+    for (ZipEntry nestedJarEntry : nestedJarEntries) {
+        Path nestedJarPath = Files.createTempFile(temporaryDirectory, 'nested-', '.jar')
+        try {
+            InputStream input = outerJar.getInputStream(nestedJarEntry)
+            try {
+                Files.copy(input, nestedJarPath, StandardCopyOption.REPLACE_EXISTING)
+            } finally {
+                input.close()
+            }
+
+            ZipFile nestedJar = new ZipFile(nestedJarPath.toFile())
+            try {
+                if (nestedJar.getEntry(classPath) != null) {
+                    return true
+                }
+            } finally {
+                nestedJar.close()
+            }
+        } finally {
+            Files.deleteIfExists(nestedJarPath)
+        }
+    }
+    return false
+}
 
 plugins {
     id 'java-library'
@@ -87,6 +124,74 @@ configurations.named('runtimeClasspath') {
 dependencies {
     implementation(project(':modules:atlas-api'))
     implementation(project(':modules:compatibility-api'))
+
+    jarJar(project(':modules:atlas-api'))
+    jarJar(project(':modules:compatibility-api'))
+
+    additionalRuntimeClasspath(project(':modules:atlas-api'))
+    additionalRuntimeClasspath(project(':modules:compatibility-api'))
+}
+
+tasks.named('jar') {
+    archiveClassifier.set('slim')
+}
+
+final TaskProvider productionJar = tasks.named('jarJar') {
+    archiveClassifier.set('')
+}
+
+tasks.named('assemble') {
+    dependsOn(productionJar)
+}
+
+tasks.register('verifyProductionJar') {
+    group = 'verification'
+    description = 'Verifies that the installable mod JAR contains its internal runtime libraries.'
+    dependsOn(productionJar)
+    inputs.file(productionJar.flatMap { task -> task.archiveFile })
+
+    doLast {
+        File modJarFile = productionJar.get().archiveFile.get().asFile
+        String expectedName = "${artifactId.get()}-${project.version}.jar"
+        if (modJarFile.name != expectedName) {
+            throw new GradleException(
+                    "Installable mod JAR must be unclassified; expected ${expectedName}, got ${modJarFile.name}")
+        }
+
+        Path temporaryDirectory = Files.createTempDirectory('orbis-production-jar-')
+        ZipFile modJar = new ZipFile(modJarFile)
+        try {
+            if (modJar.getEntry('META-INF/jarjar/metadata.json') == null) {
+                throw new GradleException('Installable mod JAR is missing META-INF/jarjar/metadata.json')
+            }
+            if (modJar.getEntry('data/orbis_terrae/atlas/bergen-real-v1.zip') == null) {
+                throw new GradleException('Installable mod JAR is missing the bundled Bergen atlas')
+            }
+
+            List<ZipEntry> nestedJars = Collections.list(modJar.entries()).findAll { ZipEntry entry ->
+                !entry.directory
+                        && entry.name.startsWith('META-INF/jarjar/')
+                        && entry.name.endsWith('.jar')
+            }
+            if (nestedJars.isEmpty()) {
+                throw new GradleException('Installable mod JAR contains no nested runtime libraries')
+            }
+
+            Map<String, String> requiredClasses = [
+                    'atlas-api'        : 'me/sdmannen/orbis_terrae/atlas/store/AtlasDirectory.class',
+                    'compatibility-api': 'me/sdmannen/orbis_terrae/compatibility/api/CompatibilityProvider.class'
+            ]
+            requiredClasses.each { String library, String classPath ->
+                if (!nestedJarContainsClass(modJar, nestedJars, classPath, temporaryDirectory)) {
+                    throw new GradleException(
+                            "Installable mod JAR does not contain ${library} class ${classPath}")
+                }
+            }
+        } finally {
+            modJar.close()
+            Files.deleteIfExists(temporaryDirectory)
+        }
+    }
 }
 
 final Map<String, String> modMetadataProperties = [
