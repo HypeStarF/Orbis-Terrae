@@ -84,12 +84,14 @@ final class Phase2PerformanceExitAuditTest {
         assertEquals(first.completeColumns(), second.completeColumns());
         assertEquals(first.steepLandPairs(), second.steepLandPairs());
         assertEquals(first.isolatedPeaks(), second.isolatedPeaks());
-        assertTrue(first.completeColumns() > 0);
-        assertTrue(first.landColumns() > 0);
-        assertTrue(first.oceanColumns() > 0);
+        assertEquals(4_365, first.completeColumns());
+        assertEquals(2_647, first.landColumns());
+        assertEquals(1_718, first.oceanColumns());
+        assertEquals(388, first.incompleteColumns());
         assertTrue(first.landNeighborPairs() > 0);
         assertTrue(first.chunkBoundaryLandPairs() > 0);
         assertTrue(first.interiorLandPairs() > 0);
+        assertEquals(0, first.isolatedPeaks());
         assertTrue(first.terrainQualityTargetMet(), () -> String.format(
                 java.util.Locale.ROOT,
                 "Reconstructed terrain failed quality target: steep ratio %.3f%%, isolated peaks %d, p95 %d",
