@@ -109,7 +109,7 @@ final class Phase2SpawnStructureTest {
         assertTrue(generator.contains("public void createStructures("));
         assertTrue(generator.contains("public void createReferences("));
         assertTrue(generator.contains("findNearestMapStructure("));
-        assertTrue(generator.contains("SpawnConfiguration.CODEC.optionalFieldOf(\"spawn\""));
+        assertTrue(generator.contains("SpawnConfiguration.codec().optionalFieldOf(\"spawn\""));
         assertTrue(events.contains("LevelEvent.CreateSpawnPosition"));
         assertTrue(events.contains("instanceof OrbisChunkGenerator"));
         assertTrue(events.contains("setDefaultSpawnPos"));
