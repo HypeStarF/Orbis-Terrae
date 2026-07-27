@@ -117,12 +117,35 @@ tasks.named('check') {
 
 tasks.register('phase0Check') {
     group = 'verification'
-    description = 'Runs all automated Phase 0 checks.'
-    dependsOn tasks.named('check')
+    description = 'Runs isolated Phase 0 foundation regression checks.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:atlas-api:phase0Test'
+    dependsOn ':modules:minecraft-mod:phase0Test'
+    dependsOn ':modules:compatibility-api:check'
+    dependsOn ':modules:compatibility-mekanism:check'
+    dependsOn ':modules:compatibility-immersive-engineering:check'
+    dependsOn ':modules:test-support:check'
+}
+
+tasks.register('phase1Check') {
+    group = 'verification'
+    description = 'Runs isolated Phase 1 atlas API and compiler checks.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:atlas-api:check'
+    dependsOn ':modules:atlas-compiler:check'
 }
 
 tasks.register('phase2FoundationCheck') {
     group = 'verification'
-    description = 'Runs the full build and Phase 2 world-foundation contract tests.'
-    dependsOn tasks.named('phase0Check')
+    description = 'Runs isolated Phase 2 world-foundation contract checks.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:minecraft-mod:checkstyleMain'
+    dependsOn ':modules:minecraft-mod:checkstyleTest'
+    dependsOn ':modules:minecraft-mod:phase2FoundationTest'
+}
+
+tasks.register('allChecks') {
+    group = 'verification'
+    description = 'Runs every automated project check across all modules and phases.'
+    dependsOn tasks.named('check')
 }
