@@ -83,10 +83,10 @@ The benchmark is included in ordinary tests and has a dedicated report workflow:
   --warning-mode=fail
 ```
 
-Set `ATLAS_BENCHMARK_REPORT` to write the JSON report:
+Set `ATLAS_BENCHMARK_REPORT` to an absolute path to write the JSON report:
 
 ```bash
-ATLAS_BENCHMARK_REPORT=modules/atlas-api/build/atlas-benchmark/report.json \
+ATLAS_BENCHMARK_REPORT="$PWD/modules/atlas-api/build/atlas-benchmark/report.json" \
   ./gradlew :modules:atlas-api:test \
   --tests me.sdmannen.orbis_terrae.atlas.benchmark.AtlasRuntimeBenchmarkTest \
   --no-configuration-cache \
@@ -96,6 +96,31 @@ ATLAS_BENCHMARK_REPORT=modules/atlas-api/build/atlas-benchmark/report.json \
 `.github/workflows/atlas-runtime-benchmark.yml` runs this command on Java 21 and uploads the JSON report.
 Absolute timings should be compared only between similar machines and software environments. Workload and
 result fingerprints are the portable determinism signals.
+
+## Initial CI baseline
+
+The first successful report was recorded on GitHub's Ubuntu 24.04 runner with Temurin Java 21.0.11.
+Nanosecond values are retained in the uploaded JSON; the table below converts the percentile values for
+readability.
+
+| Workload | p50 | p95 | p99 | Maximum |
+| --- | ---: | ---: | ---: | ---: |
+| Application-cache-cold nearest | 138.551 us | 204.088 us | 3.214 ms | 3.214 ms |
+| Warm nearest | 1.954 us | 7.305 us | 20.600 us | 2.590 ms |
+| Random nearest | 42.529 us | 109.174 us | 149.720 us | 287.127 us |
+
+The warm p95 was `7,305 ns`, approximately 274 times below the `2,000,000 ns` target. The isolated warm
+maximum includes scheduler/JIT noise and is not the gating percentile.
+
+| Deterministic/cache signal | Value |
+| --- | --- |
+| Workload fingerprint | `5c3ebdffa74a1fc0` |
+| Result fingerprint | `99edc292c637bcf4` |
+| Cache hits | 5,136 |
+| Cache misses | 1,929 |
+| Final cache size | 4 tiles |
+| Maximum observed cache size | 4 tiles |
+| Decoded elevation payload bound | 512 bytes |
 
 ## Phase 1 exit-criteria audit
 
