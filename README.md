@@ -78,11 +78,11 @@ Install `modules/minecraft-mod/build/libs/orbis-terrae-0.2.0-SNAPSHOT.jar`. The 
 | `phase2FoundationCheck` | Phase 2 profile, projection, vertical-curve, and manifest contracts |
 | `phase2CodecCheck` | Phase 2 biome-source and chunk-generator codec contracts |
 | `phase2WorldPresetCheck` | Fast Earth dimension-type, world-preset, tag, and localization contracts |
-| `phase2AtlasSamplingCheck` | Bundled atlas installation and Minecraft-to-atlas column-sampling contracts |
+| `phase2AtlasSamplingCheck` | Bundled atlas installation, coordinate sampling, and scale-aware elevation reconstruction |
 | `phase2TerrainColumnCheck` | Land, seabed, ocean, air, heightmap, and missing-data terrain-column contracts |
 | `phase2SpawnStructureCheck` | Exact geographic spawn, bounded safety search, and structure-suppression contracts |
 | `phase2DeterminismPersistenceCheck` | Real-atlas chunk fingerprints, manifest disk round-trip, and tamper detection |
-| `phase2PerformanceExitAuditCheck` | Terrain-planning latency, continuity metrics, and terrain-quality diagnostics |
+| `phase2PerformanceExitAuditCheck` | Terrain-planning latency, fixed Bergen coverage, continuity metrics, and terrain-quality gate |
 | `phase2RuntimePreparationCheck` | Generated ModDev client and dedicated-server launch argument files |
 | `productionJarCheck` | Installable JAR, jar-in-jar metadata, bundled atlas, and nested runtime classes |
 | `phase2WorldgenSmoke` | Headless NeoForge registry, codec, bundled-atlas, generator, and event startup smoke |
@@ -109,18 +109,22 @@ exit audit were completed. See [`docs/phase-1/README.md`](docs/phase-1/README.md
 Phase 2 now has immutable world profiles, registered worldgen codecs, a data-driven Earth world preset, a common
 offline atlas runtime, deterministic terrain columns, generator-level artificial-structure suppression, safe
 geographic spawn selection, stable chunk fingerprints, strict manifest persistence, verified NeoForge launch
-preparation, and repeatable terrain performance/continuity reports.
+preparation, repeatable terrain reports, and scale-aware coarse-profile terrain reconstruction.
 
-Phase 2 remains open after its first exit audit. The current production JAR bundles only a small Bergen atlas patch,
-and the Global Survival profile produces pillar-like mountain terrain because coarse horizontal sampling has no
-scale-aware reconstruction. Corrective Scandinavian atlas coverage, terrain generalisation, diagnostic commands,
-and recorded client/server restart acceptance are required before Phase 3 hydrology begins. See
-[`docs/phase-2/step-08-performance-and-exit-audit.md`](docs/phase-2/step-08-performance-and-exit-audit.md).
+Step 9A reduced the Bergen steep-pair ratio from 28.924% to 1.643%, adjacent-step p95 from 22 to 7 blocks,
+maximum step from 47 to 12 blocks, and isolated peaks from one to zero while preserving the exact audited land,
+ocean, and missing-data counts. Planning p95 remains below the 150 ms prototype target. See
+[`docs/phase-2/step-09a-terrain-generalization.md`](docs/phase-2/step-09a-terrain-generalization.md).
+
+Phase 2 remains open because the production JAR still bundles only the small Bergen atlas patch. Meaningful Northern
+Europe runtime coverage, geographic regressions, initial diagnostic commands, and recorded graphical-client and
+interactive dedicated-server restart acceptance are required before Phase 3 hydrology begins.
 
 ## Modules
 
-- `minecraft-mod`: NeoForge entry point, Earth profiles, manifests, worldgen codecs, atlas runtime, terrain columns,
-  geographic spawn, structure policy, persistence validation, performance audit, and preset data.
+- `minecraft-mod`: NeoForge entry point, Earth profiles, manifests, worldgen codecs, atlas runtime, terrain
+  reconstruction, terrain columns, geographic spawn, structure policy, persistence validation, performance audit,
+  and preset data.
 - `atlas-api`: Minecraft-independent tile format, strict atlas manifest, coordinate sampling, and cache.
 - `atlas-compiler`: command-line packer and manifest validator/canonicalizer.
 - `compatibility-api`: stable compatibility contracts.
