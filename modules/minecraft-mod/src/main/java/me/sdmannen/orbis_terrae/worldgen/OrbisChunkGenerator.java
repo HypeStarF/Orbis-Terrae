@@ -8,17 +8,17 @@ import java.util.concurrent.CompletableFuture;
 import me.sdmannen.orbis_terrae.profile.WorldProfile;
 import me.sdmannen.orbis_terrae.profile.WorldProfiles;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.LevelHeightAccessor;
-import net.minecraft.world.level.WorldGenRegion;
+import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.NoiseColumn;
 import net.minecraft.world.level.levelgen.RandomState;
-import net.minecraft.world.level.levelgen.StructureManager;
 import net.minecraft.world.level.levelgen.blending.Blender;
 
 /** Serializable chunk-generator boundary; terrain generation is added in later Phase 2 steps. */
