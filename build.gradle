@@ -161,6 +161,15 @@ tasks.register('phase2WorldPresetCheck') {
     dependsOn ':modules:minecraft-mod:phase2WorldPresetTest'
 }
 
+tasks.register('phase2AtlasSamplingCheck') {
+    group = 'verification'
+    description = 'Runs isolated Phase 2 Minecraft-to-atlas sampling checks.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:minecraft-mod:checkstyleMain'
+    dependsOn ':modules:minecraft-mod:checkstyleTest'
+    dependsOn ':modules:minecraft-mod:phase2AtlasSamplingTest'
+}
+
 tasks.register('phase2WorldgenSmoke') {
     group = 'verification'
     description = 'Loads NeoForge headlessly to decode the Phase 2 world-generation registries.'
@@ -173,6 +182,7 @@ tasks.register('phase2Check') {
     dependsOn tasks.named('phase2FoundationCheck')
     dependsOn tasks.named('phase2CodecCheck')
     dependsOn tasks.named('phase2WorldPresetCheck')
+    dependsOn tasks.named('phase2AtlasSamplingCheck')
     dependsOn tasks.named('phase2WorldgenSmoke')
 }
 
