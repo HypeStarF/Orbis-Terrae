@@ -61,6 +61,8 @@ SHA-256 checksum.
 | `phase0Check` | Foundation regressions, module placeholders, formatting, and server-safety boundaries |
 | `phase1Check` | Atlas API and atlas compiler checks |
 | `phase2FoundationCheck` | Phase 2 profile, projection, vertical-curve, and manifest contracts |
+| `phase2CodecCheck` | Phase 2 biome-source and chunk-generator codec contracts |
+| `phase2Check` | Every Phase 2 check implemented so far |
 | `allChecks` | Every automated check across every module and phase |
 | `check` | Gradle's canonical full verification lifecycle task; also runs every subproject check |
 
@@ -79,13 +81,14 @@ Phase 1 closed on 2026-07-27 after the atlas manifest, deterministic tile format
 regional and global atlas builds, runtime selection, corruption fallback, cache bounds, and performance
 exit audit were completed. See [`docs/phase-1/README.md`](docs/phase-1/README.md).
 
-Phase 2 has started with immutable world profiles, centred equirectangular coordinate mapping, nonlinear
-vertical curves, and world manifest schema v1. The next step registers the custom biome-source and
-chunk-generator codecs. See [`docs/phase-2/README.md`](docs/phase-2/README.md).
+Phase 2 now has immutable world profiles, centred equirectangular coordinate mapping, nonlinear vertical
+curves, world manifest schema v1, and registered `orbis_terrae:earth` biome-source and chunk-generator
+codecs. The next step adds dimension data and minimal biome selection. See
+[`docs/phase-2/README.md`](docs/phase-2/README.md).
 
 ## Modules
 
-- `minecraft-mod`: NeoForge entry point, Earth world profiles, manifests, and run configurations.
+- `minecraft-mod`: NeoForge entry point, Earth world profiles, manifests, worldgen codecs, and run configurations.
 - `atlas-api`: Minecraft-independent tile format, strict atlas manifest, coordinate sampling, and cache.
 - `atlas-compiler`: command-line packer and manifest validator/canonicalizer.
 - `compatibility-api`: stable compatibility contracts.
