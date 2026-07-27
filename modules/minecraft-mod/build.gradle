@@ -1,6 +1,7 @@
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.testing.Test
 
 plugins {
     id 'java-library'
@@ -109,3 +110,23 @@ sourceSets.named('main') {
     resources.srcDir(generateModMetadata)
 }
 neoForge.ideSyncTask(generateModMetadata)
+
+tasks.register('phase0Test', Test) {
+    group = 'verification'
+    description = 'Runs the Phase 0 dedicated-server safety regression test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching('me.sdmannen.orbis_terrae.DedicatedServerSafetyTest')
+    }
+}
+
+tasks.register('phase2FoundationTest', Test) {
+    group = 'verification'
+    description = 'Runs the Phase 2 world-foundation contract tests.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching('me.sdmannen.orbis_terrae.Phase2FoundationTest')
+    }
+}

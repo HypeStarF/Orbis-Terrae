@@ -29,7 +29,7 @@ Linux/macOS:
 
 ```bash
 chmod +x gradlew
-./gradlew clean phase2FoundationCheck --no-configuration-cache --warning-mode=fail
+./gradlew clean allChecks --no-configuration-cache --warning-mode=fail
 ./gradlew :modules:minecraft-mod:runClient --no-configuration-cache
 ./gradlew :modules:minecraft-mod:runServer --no-configuration-cache
 ./gradlew :modules:atlas-compiler:run --args="--version" --no-configuration-cache
@@ -41,7 +41,7 @@ chmod +x gradlew
 Windows:
 
 ```bat
-gradlew.bat clean phase2FoundationCheck --no-configuration-cache --warning-mode=fail
+gradlew.bat clean allChecks --no-configuration-cache --warning-mode=fail
 gradlew.bat :modules:minecraft-mod:runClient --no-configuration-cache
 gradlew.bat :modules:minecraft-mod:runServer --no-configuration-cache
 gradlew.bat :modules:atlas-compiler:run --args="--version" --no-configuration-cache
@@ -53,6 +53,20 @@ gradlew.bat :modules:atlas-compiler:run ^
 Configuration caching is disabled for verification. Build caching remains enabled.
 The committed wrapper downloads Gradle 9.6.1 and verifies the distribution against its published
 SHA-256 checksum.
+
+## Verification scopes
+
+| Task | Scope |
+| --- | --- |
+| `phase0Check` | Foundation regressions, module placeholders, formatting, and server-safety boundaries |
+| `phase1Check` | Atlas API and atlas compiler checks |
+| `phase2FoundationCheck` | Phase 2 profile, projection, vertical-curve, and manifest contracts |
+| `allChecks` | Every automated check across every module and phase |
+| `check` | Gradle's canonical full verification lifecycle task; also runs every subproject check |
+
+Use a phase task for focused development feedback. Use `allChecks` before pushing or merging. Gradle reuses
+up-to-date outputs and the build cache, so running a focused task followed by `allChecks` does not require
+all unchanged work to execute again.
 
 ## Project status
 
