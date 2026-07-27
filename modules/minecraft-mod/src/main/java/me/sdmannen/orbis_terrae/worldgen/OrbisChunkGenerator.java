@@ -9,6 +9,7 @@ import java.io.UncheckedIOException;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import me.sdmannen.orbis_terrae.profile.WorldProfile;
@@ -50,7 +51,7 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
                             .forGetter(OrbisChunkGenerator::getBiomeSource),
                     Codec.STRING.fieldOf("profile")
                             .forGetter(generator -> generator.profile.id()),
-                    SpawnConfiguration.CODEC.optionalFieldOf("spawn", SpawnConfiguration.BUNDLED_BERGEN)
+                    SpawnConfiguration.codec().optionalFieldOf("spawn", SpawnConfiguration.BUNDLED_BERGEN)
                             .forGetter(OrbisChunkGenerator::spawnConfiguration))
                     .apply(instance, OrbisChunkGenerator::new));
 
@@ -72,7 +73,7 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
             SpawnConfiguration spawnConfiguration) {
         super(biomeSource);
         profile = WorldProfiles.require(profileId);
-        this.spawnConfiguration = spawnConfiguration;
+        this.spawnConfiguration = Objects.requireNonNull(spawnConfiguration, "spawnConfiguration");
     }
 
     public WorldProfile profile() {
