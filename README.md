@@ -54,6 +54,18 @@ Configuration caching is disabled for verification. Build caching remains enable
 The committed wrapper downloads Gradle 9.6.1 and verifies the distribution against its published
 SHA-256 checksum.
 
+## Installable mod JAR
+
+Build the production artifact with:
+
+```bash
+./gradlew :modules:minecraft-mod:jarJar --no-configuration-cache --warning-mode=fail
+```
+
+Install `modules/minecraft-mod/build/libs/orbis-terrae-0.2.0-SNAPSHOT.jar`. This unclassified JAR contains
+`atlas-api` and `compatibility-api` through NeoForge jar-in-jar metadata. The `-slim.jar` artifact is only the
+unbundled module output and must not be installed as a standalone mod.
+
 ## Verification scopes
 
 | Task | Scope |
@@ -64,15 +76,16 @@ SHA-256 checksum.
 | `phase2CodecCheck` | Phase 2 biome-source and chunk-generator codec contracts |
 | `phase2WorldPresetCheck` | Fast Earth dimension-type, world-preset, tag, and localization contracts |
 | `phase2AtlasSamplingCheck` | Bundled atlas installation and Minecraft-to-atlas column-sampling contracts |
+| `productionJarCheck` | Installable JAR, jar-in-jar metadata, bundled atlas, and nested runtime classes |
 | `phase2WorldgenSmoke` | Headless NeoForge registry, codec, and bundled-atlas startup smoke |
-| `phase2Check` | Every Phase 2 check implemented so far, including the headless smoke |
-| `allChecks` | Every automated check across every module and phase, including the headless smoke |
+| `phase2Check` | Every Phase 2 check implemented so far, including production packaging and headless smoke |
+| `allChecks` | Every automated check across every module and phase, including production packaging and headless smoke |
 | `check` | Gradle's standard fast verification lifecycle without launching Minecraft |
 
 Use the narrowest phase task for focused development feedback. Use `allChecks` before pushing or merging.
-The focused contract tasks remain fast; `phase2WorldgenSmoke`, `phase2Check`, and `allChecks` launch the
-headless GameTest server to prove the dynamic worldgen registries and bundled atlas initialize inside Minecraft.
-Gradle still reuses up-to-date outputs and the build cache for unchanged compilation and test work.
+The focused contract tasks remain fast; `productionJarCheck` inspects the exact artifact distributed to players,
+while `phase2WorldgenSmoke`, `phase2Check`, and `allChecks` launch the headless GameTest server. Gradle still
+reuses up-to-date outputs and the build cache for unchanged compilation and test work.
 
 ## Project status
 
