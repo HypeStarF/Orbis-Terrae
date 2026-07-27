@@ -39,6 +39,28 @@ The report records machine-labelled latency values, columns per second, a portab
 portable result fingerprint. Absolute timings should only be compared between similar machines and software
 environments.
 
+## Initial CI baseline
+
+The first report was recorded on GitHub's Ubuntu runner with Temurin Java 21.0.11:
+
+| Measurement | Result |
+| --- | ---: |
+| Planned-chunk p50 | 0.885 ms |
+| Planned-chunk p95 | 4.836 ms |
+| Planned-chunk p99 | 15.760 ms |
+| Maximum | 15.760 ms |
+| Throughput | 124,585 columns/s |
+| 150 ms p95 target | Passed |
+
+| Portable signal | Value |
+| --- | --- |
+| Workload fingerprint | `5ccc5f9b049bf377c3526ba0e7608314d10b30493b2b89f0b66c547617227afa` |
+| Result fingerprint | `3b5895f37938a8bc0400def4f6168a1189a95d2003b0797ae0c0cf4cba529510` |
+
+The planning-only p95 is approximately 31 times below the provisional target. This leaves substantial room for
+block placement and heightmap work, but it is not a substitute for an instrumented Minecraft chunk-generation
+benchmark.
+
 ## Terrain continuity and shape audit
 
 `TerrainContinuityAudit` samples a 97 x 49 block window around Bergen and records:
@@ -54,6 +76,31 @@ The provisional terrain-quality signal allows at most two percent of adjacent la
 step threshold and allows no isolated peaks. The signal is diagnostic in Step 8 rather than a build failure. The
 current terrain has already failed visual acceptance, so CI must continue producing the report while corrective work
 changes the metrics.
+
+The first audit baseline is:
+
+| Measurement | Result |
+| --- | ---: |
+| Audited columns | 4,753 |
+| Complete atlas columns | 4,365 |
+| Complete land columns | 2,647 |
+| Complete ocean columns | 1,718 |
+| Adjacent complete-land pairs | 4,868 |
+| Pairs above eight blocks | 1,408 |
+| Steep-pair ratio | 28.924% |
+| All-land p95 step | 22 blocks |
+| All-land maximum step | 47 blocks |
+| Chunk-boundary p95 step | 20 blocks |
+| Chunk-boundary maximum step | 46 blocks |
+| Interior p95 step | 22 blocks |
+| Interior maximum step | 47 blocks |
+| Isolated peaks | 1 |
+| Provisional quality target | Failed |
+
+The similar boundary and interior distributions indicate that the spikes are not introduced specifically at chunk
+borders. They are a general consequence of the coarse horizontal profile and direct per-column elevation mapping.
+The terrain-window fingerprint is
+`25b0efc0fed04ff8fc3d17ad341b7d305f7c481c8869608fa4ee4169e5216eb5`.
 
 ## Reproducing the reports
 
@@ -106,8 +153,8 @@ are a predictable prototype limitation, not acceptable final terrain.
 | The same seed and immutable manifest reproduce identical chunks. | Stable chunk fingerprints, independent atlas installations, strict manifest hashes, and disk round-trip tests. | Passed |
 | Singleplayer and dedicated server both work. | Client and server launch preparation plus headless server startup pass. A recorded full client save/reopen and interactive dedicated-server restart remain required. | Partial |
 | No runtime internet access is required. | The production JAR contains the reviewed Bergen atlas and the runtime uses only local atlas files. | Passed |
-| No obvious chunk-border elevation seams are visible. | The audit separates boundary and interior step distributions, but current terrain roughness prevents visual sign-off. | **Blocked** |
-| Atlas lookups and terrain planning are sufficiently fast. | The portable atlas benchmark already passes its warm lookup target; Step 8 adds the first terrain-planning p95 report. Full Minecraft chunk cost remains unmeasured. | Partial |
+| No obvious chunk-border elevation seams are visible. | Boundary and interior step distributions are similar, but overall terrain roughness prevents visual sign-off. | **Blocked** |
+| Atlas lookups and terrain planning are sufficiently fast. | The portable atlas benchmark passes its warm target and the first terrain-planning p95 is 4.836 ms. Full Minecraft chunk cost remains unmeasured. | Partial |
 | Atlas provenance is documented. | Bergen and regional build inputs use source locks, checksums, attribution, and deterministic rebuild workflows. | Passed |
 | Atlas and coordinate debugging commands exist. | Debug-screen information exists, but the master-plan `/orbis coords` and atlas-status commands are not implemented. | **Blocked** |
 
