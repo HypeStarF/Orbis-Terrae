@@ -14,25 +14,16 @@ public record SpawnConfiguration(double latitude, double longitude, int searchRa
             5.3221,
             DEFAULT_SEARCH_RADIUS_BLOCKS);
 
-    public static final Codec<SpawnConfiguration> CODEC = RecordCodecBuilder.create(instance ->
-            instance.group(
-                    Codec.STRING.optionalFieldOf("mode", COORDINATE_MODE)
-                            .forGetter(configuration -> COORDINATE_MODE),
-                    Codec.DOUBLE.fieldOf("latitude")
-                            .forGetter(SpawnConfiguration::latitude),
-                    Codec.DOUBLE.fieldOf("longitude")
-                            .forGetter(SpawnConfiguration::longitude),
-                    Codec.intRange(0, MAX_SEARCH_RADIUS_BLOCKS)
-                            .optionalFieldOf("search_radius_blocks", DEFAULT_SEARCH_RADIUS_BLOCKS)
-                            .forGetter(SpawnConfiguration::searchRadiusBlocks))
-                    .apply(instance, SpawnConfiguration::decode));
-
     public SpawnConfiguration {
         new GeoCoordinate(latitude, longitude);
         if (searchRadiusBlocks < 0 || searchRadiusBlocks > MAX_SEARCH_RADIUS_BLOCKS) {
             throw new IllegalArgumentException(
                     "Spawn search radius must be between 0 and " + MAX_SEARCH_RADIUS_BLOCKS);
         }
+    }
+
+    public static Codec<SpawnConfiguration> codec() {
+        return CodecHolder.CODEC;
     }
 
     public GeoCoordinate coordinate() {
@@ -48,5 +39,23 @@ public record SpawnConfiguration(double latitude, double longitude, int searchRa
             throw new IllegalArgumentException("Unsupported spawn mode: " + mode);
         }
         return new SpawnConfiguration(latitude, longitude, searchRadiusBlocks);
+    }
+
+    private static final class CodecHolder {
+        private static final Codec<SpawnConfiguration> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(
+                        Codec.STRING.optionalFieldOf("mode", COORDINATE_MODE)
+                                .forGetter(configuration -> COORDINATE_MODE),
+                        Codec.DOUBLE.fieldOf("latitude")
+                                .forGetter(SpawnConfiguration::latitude),
+                        Codec.DOUBLE.fieldOf("longitude")
+                                .forGetter(SpawnConfiguration::longitude),
+                        Codec.intRange(0, MAX_SEARCH_RADIUS_BLOCKS)
+                                .optionalFieldOf("search_radius_blocks", DEFAULT_SEARCH_RADIUS_BLOCKS)
+                                .forGetter(SpawnConfiguration::searchRadiusBlocks))
+                        .apply(instance, SpawnConfiguration::decode));
+
+        private CodecHolder() {
+        }
     }
 }
