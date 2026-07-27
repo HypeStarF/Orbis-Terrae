@@ -12,7 +12,7 @@ import me.sdmannen.orbis_terrae.profile.WorldProfile;
 /** Maps Minecraft columns to deterministic elevation and land-mask samples from an atlas stack. */
 public final class EarthAtlasSampler {
     public static final int RECONSTRUCTION_RADIUS_METRES = 3_000;
-    public static final int MAXIMUM_RESIDUAL_BLOCKS = 1;
+    public static final int MAXIMUM_RESIDUAL_BLOCKS = 0;
 
     private final WorldProfile profile;
     private final EarthCoordinateMapper coordinateMapper;
