@@ -32,7 +32,7 @@ jobs:
 
       - name: Run atlas runtime benchmark
         env:
-          ATLAS_BENCHMARK_REPORT: modules/atlas-api/build/atlas-benchmark/report.json
+          ATLAS_BENCHMARK_REPORT: ${{ github.workspace }}/modules/atlas-api/build/atlas-benchmark/report.json
         run: >-
           ./gradlew :modules:atlas-api:test
           --tests me.sdmannen.orbis_terrae.atlas.benchmark.AtlasRuntimeBenchmarkTest
