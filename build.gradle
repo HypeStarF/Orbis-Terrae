@@ -198,6 +198,15 @@ tasks.register('phase2DeterminismPersistenceCheck') {
     dependsOn ':modules:minecraft-mod:phase2DeterminismPersistenceTest'
 }
 
+tasks.register('phase2PerformanceExitAuditCheck') {
+    group = 'verification'
+    description = 'Benchmarks terrain planning and records Phase 2 continuity and quality metrics.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:minecraft-mod:checkstyleMain'
+    dependsOn ':modules:minecraft-mod:checkstyleTest'
+    dependsOn ':modules:minecraft-mod:phase2PerformanceExitAuditTest'
+}
+
 tasks.register('phase2RuntimePreparationCheck') {
     group = 'verification'
     description = 'Generates NeoForge client and dedicated-server launch arguments.'
@@ -228,6 +237,7 @@ tasks.register('phase2Check') {
     dependsOn tasks.named('phase2TerrainColumnCheck')
     dependsOn tasks.named('phase2SpawnStructureCheck')
     dependsOn tasks.named('phase2DeterminismPersistenceCheck')
+    dependsOn tasks.named('phase2PerformanceExitAuditCheck')
     dependsOn tasks.named('phase2RuntimePreparationCheck')
     dependsOn tasks.named('productionJarCheck')
     dependsOn tasks.named('phase2WorldgenSmoke')
@@ -238,6 +248,7 @@ tasks.register('allChecks') {
     description = 'Runs every automated project check across all modules and phases.'
     dependsOn tasks.named('check')
     dependsOn tasks.named('phase2DeterminismPersistenceCheck')
+    dependsOn tasks.named('phase2PerformanceExitAuditCheck')
     dependsOn tasks.named('phase2RuntimePreparationCheck')
     dependsOn tasks.named('productionJarCheck')
     dependsOn tasks.named('phase2WorldgenSmoke')
