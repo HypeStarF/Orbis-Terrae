@@ -30,6 +30,7 @@ Linux/macOS:
 ```bash
 chmod +x gradlew
 ./gradlew clean allChecks --no-configuration-cache --warning-mode=fail
+./gradlew phase2PerformanceExitAuditCheck --no-configuration-cache --warning-mode=fail
 ./gradlew phase2RuntimePreparationCheck --no-configuration-cache --warning-mode=fail
 ./gradlew :modules:minecraft-mod:runClient --no-configuration-cache
 ./gradlew :modules:minecraft-mod:runServer --no-configuration-cache
@@ -43,6 +44,7 @@ Windows:
 
 ```bat
 gradlew.bat clean allChecks --no-configuration-cache --warning-mode=fail
+gradlew.bat phase2PerformanceExitAuditCheck --no-configuration-cache --warning-mode=fail
 gradlew.bat phase2RuntimePreparationCheck --no-configuration-cache --warning-mode=fail
 gradlew.bat :modules:minecraft-mod:runClient --no-configuration-cache
 gradlew.bat :modules:minecraft-mod:runServer --no-configuration-cache
@@ -80,17 +82,18 @@ Install `modules/minecraft-mod/build/libs/orbis-terrae-0.2.0-SNAPSHOT.jar`. The 
 | `phase2TerrainColumnCheck` | Land, seabed, ocean, air, heightmap, and missing-data terrain-column contracts |
 | `phase2SpawnStructureCheck` | Exact geographic spawn, bounded safety search, and structure-suppression contracts |
 | `phase2DeterminismPersistenceCheck` | Real-atlas chunk fingerprints, manifest disk round-trip, and tamper detection |
+| `phase2PerformanceExitAuditCheck` | Terrain-planning latency, continuity metrics, and terrain-quality diagnostics |
 | `phase2RuntimePreparationCheck` | Generated ModDev client and dedicated-server launch argument files |
 | `productionJarCheck` | Installable JAR, jar-in-jar metadata, bundled atlas, and nested runtime classes |
 | `phase2WorldgenSmoke` | Headless NeoForge registry, codec, bundled-atlas, generator, and event startup smoke |
-| `phase2Check` | Every Phase 2 check implemented so far, including persistence, launch preparation, and headless smoke |
-| `allChecks` | Every automated check across every module and phase, including runtime preparation and packaging |
+| `phase2Check` | Every Phase 2 check implemented so far, including performance, packaging, and headless smoke |
+| `allChecks` | Every automated check across every module and phase, including the Phase 2 exit audit |
 | `check` | Gradle's standard fast verification lifecycle without launching Minecraft |
 
 Use the narrowest phase task for focused development feedback. Use `allChecks` before pushing or merging.
 The focused contract tasks remain fast; `productionJarCheck` inspects the exact artifact distributed to players,
-while `phase2WorldgenSmoke`, `phase2Check`, and `allChecks` launch the headless GameTest server. Gradle still
-reuses up-to-date outputs and the build cache for unchanged compilation and test work.
+while `phase2WorldgenSmoke`, `phase2Check`, and `allChecks` launch the headless GameTest server. The dedicated
+terrain benchmark workflow uploads timing and continuity reports for comparisons between similar CI environments.
 
 ## Project status
 
@@ -105,14 +108,19 @@ exit audit were completed. See [`docs/phase-1/README.md`](docs/phase-1/README.md
 
 Phase 2 now has immutable world profiles, registered worldgen codecs, a data-driven Earth world preset, a common
 offline atlas runtime, deterministic terrain columns, generator-level artificial-structure suppression, safe
-geographic spawn selection, stable chunk fingerprints, strict manifest persistence, and verified NeoForge client
-and server launch preparation. The final local client save/reopen and dedicated-server restart checklist is recorded
-in Step 7 before Step 8 benchmarks and closes the phase. See [`docs/phase-2/README.md`](docs/phase-2/README.md).
+geographic spawn selection, stable chunk fingerprints, strict manifest persistence, verified NeoForge launch
+preparation, and repeatable terrain performance/continuity reports.
+
+Phase 2 remains open after its first exit audit. The current production JAR bundles only a small Bergen atlas patch,
+and the Global Survival profile produces pillar-like mountain terrain because coarse horizontal sampling has no
+scale-aware reconstruction. Corrective Scandinavian atlas coverage, terrain generalisation, diagnostic commands,
+and recorded client/server restart acceptance are required before Phase 3 hydrology begins. See
+[`docs/phase-2/step-08-performance-and-exit-audit.md`](docs/phase-2/step-08-performance-and-exit-audit.md).
 
 ## Modules
 
 - `minecraft-mod`: NeoForge entry point, Earth profiles, manifests, worldgen codecs, atlas runtime, terrain columns,
-  geographic spawn, structure policy, persistence validation, and preset data.
+  geographic spawn, structure policy, persistence validation, performance audit, and preset data.
 - `atlas-api`: Minecraft-independent tile format, strict atlas manifest, coordinate sampling, and cache.
 - `atlas-compiler`: command-line packer and manifest validator/canonicalizer.
 - `compatibility-api`: stable compatibility contracts.

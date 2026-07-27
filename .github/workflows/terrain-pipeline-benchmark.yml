@@ -1,0 +1,50 @@
+name: Terrain Pipeline Benchmark
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/terrain-pipeline-benchmark.yml'
+      - 'modules/minecraft-mod/**'
+      - 'modules/atlas-api/**'
+      - 'atlas/test-fixtures/bergen-real-v1.zip'
+      - 'docs/phase-2/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Make Gradle launcher executable
+        run: chmod +x gradlew
+
+      - name: Run terrain benchmark and continuity audit
+        env:
+          TERRAIN_BENCHMARK_REPORT: ${{ github.workspace }}/modules/minecraft-mod/build/terrain-benchmark/report.json
+          TERRAIN_CONTINUITY_REPORT: ${{ github.workspace }}/modules/minecraft-mod/build/terrain-benchmark/continuity.json
+        run: >-
+          ./gradlew phase2PerformanceExitAuditCheck
+          --no-configuration-cache
+          --warning-mode=fail
+
+      - name: Upload terrain reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: terrain-pipeline-benchmark
+          path: modules/minecraft-mod/build/terrain-benchmark/*.json
+          if-no-files-found: error
+          retention-days: 30

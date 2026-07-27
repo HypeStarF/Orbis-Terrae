@@ -294,6 +294,16 @@ tasks.register('phase2DeterminismPersistenceTest', Test) {
     }
 }
 
+tasks.register('phase2PerformanceExitAuditTest', Test) {
+    group = 'verification'
+    description = 'Benchmarks Phase 2 terrain planning and records continuity audit metrics.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching('me.sdmannen.orbis_terrae.Phase2PerformanceExitAuditTest')
+    }
+}
+
 tasks.register('phase2RuntimePreparationCheck') {
     group = 'verification'
     description = 'Generates and verifies NeoForge client and dedicated-server run argument files.'

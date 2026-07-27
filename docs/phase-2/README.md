@@ -25,7 +25,8 @@ is `0.2.x — Terrain Alpha`.
 5. [Fill deterministic land and ocean terrain columns](step-05-terrain-columns.md)
 6. [Disable artificial structures and add safe geographic spawn selection](step-06-spawn-and-structures.md)
 7. [Add chunk determinism, save/reload, client, and dedicated-server validation](step-07-determinism-and-persistence.md)
-8. Benchmark the first terrain pipeline and perform the Phase 2 exit audit
+8. [Benchmark the terrain pipeline and perform the Phase 2 exit audit](step-08-performance-and-exit-audit.md)
+9. Resolve terrain-quality, Scandinavian atlas-coverage, and diagnostic-command blockers
 
 ## Exit criteria
 
@@ -37,7 +38,13 @@ Phase 2 closes only when:
 - singleplayer and dedicated server both work;
 - no runtime internet access is required.
 
-Steps 1 through 7 now establish immutable configuration, Minecraft serialization, data-driven world creation,
-offline atlas installation, deterministic terrain columns, generator-level artificial-structure suppression,
-bounded geographic spawn selection, stable chunk fingerprints, strict manifest persistence, and repeatable client
-and dedicated-server launch preparation. Step 8 benchmarks the terrain pipeline and performs the Phase 2 exit audit.
+## Current gate status
+
+Steps 1 through 8 establish immutable configuration, Minecraft serialization, data-driven world creation, offline
+atlas installation, deterministic terrain columns, safe spawn selection, stable fingerprints, strict manifest
+persistence, repeatable runtime preparation, and portable performance/continuity reports.
+
+Phase 2 remains open. The Step 8 audit found that the bundled runtime atlas covers only the small Bergen fixture and
+that the 1 km/block Global Survival profile produces visually unacceptable pillar-like mountain relief without
+scale-aware terrain reconstruction. Step 9 must correct terrain quality, package meaningful Scandinavian coverage,
+add the initial diagnostic commands, and repeat client/server acceptance before Phase 3 hydrology begins.
