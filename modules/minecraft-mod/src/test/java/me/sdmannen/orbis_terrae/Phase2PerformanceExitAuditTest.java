@@ -48,6 +48,7 @@ final class Phase2PerformanceExitAuditTest {
                 centerChunkZ,
                 configuration);
 
+        assertEquals(3, sampler.reconstructionRadiusBlocks());
         assertEquals(first.workloadFingerprint(), second.workloadFingerprint());
         assertEquals(first.resultFingerprint(), second.resultFingerprint());
         assertEquals(9, first.workloadChunks());
@@ -59,7 +60,7 @@ final class Phase2PerformanceExitAuditTest {
     }
 
     @Test
-    void recordsDeterministicTerrainShapeAndChunkBoundaryMetrics() throws Exception {
+    void reconstructedBergenTerrainMeetsContinuityAndShapeTarget() throws Exception {
         EarthAtlasSampler sampler = sampler("audit-game");
         EarthCoordinateMapper.BlockCoordinate projected = new EarthCoordinateMapper(
                 WorldProfiles.GLOBAL_SURVIVAL).toBlock(BERGEN);
@@ -89,6 +90,12 @@ final class Phase2PerformanceExitAuditTest {
         assertTrue(first.landNeighborPairs() > 0);
         assertTrue(first.chunkBoundaryLandPairs() > 0);
         assertTrue(first.interiorLandPairs() > 0);
+        assertTrue(first.terrainQualityTargetMet(), () -> String.format(
+                java.util.Locale.ROOT,
+                "Reconstructed terrain failed quality target: steep ratio %.3f%%, isolated peaks %d, p95 %d",
+                first.steepLandPairRatio() * 100.0,
+                first.isolatedPeaks(),
+                first.allLandSteps().p95Blocks()));
         writeReport("TERRAIN_CONTINUITY_REPORT", first.toJson());
     }
 
