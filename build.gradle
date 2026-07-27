@@ -120,3 +120,9 @@ tasks.register('phase0Check') {
     description = 'Runs all automated Phase 0 checks.'
     dependsOn tasks.named('check')
 }
+
+tasks.register('phase2FoundationCheck') {
+    group = 'verification'
+    description = 'Runs the full build and Phase 2 world-foundation contract tests.'
+    dependsOn tasks.named('phase0Check')
+}
