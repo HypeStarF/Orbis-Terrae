@@ -170,6 +170,15 @@ tasks.register('phase2AtlasSamplingCheck') {
     dependsOn ':modules:minecraft-mod:phase2AtlasSamplingTest'
 }
 
+tasks.register('phase2TerrainColumnCheck') {
+    group = 'verification'
+    description = 'Runs isolated Phase 2 deterministic terrain-column checks.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:minecraft-mod:checkstyleMain'
+    dependsOn ':modules:minecraft-mod:checkstyleTest'
+    dependsOn ':modules:minecraft-mod:phase2TerrainColumnTest'
+}
+
 tasks.register('productionJarCheck') {
     group = 'verification'
     description = 'Builds and verifies the installable mod JAR and its nested runtime libraries.'
@@ -190,6 +199,7 @@ tasks.register('phase2Check') {
     dependsOn tasks.named('phase2CodecCheck')
     dependsOn tasks.named('phase2WorldPresetCheck')
     dependsOn tasks.named('phase2AtlasSamplingCheck')
+    dependsOn tasks.named('phase2TerrainColumnCheck')
     dependsOn tasks.named('productionJarCheck')
     dependsOn tasks.named('phase2WorldgenSmoke')
 }
