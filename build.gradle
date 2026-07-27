@@ -153,15 +153,32 @@ tasks.register('phase2CodecCheck') {
     dependsOn ':modules:minecraft-mod:phase2CodecTest'
 }
 
+tasks.register('phase2WorldPresetCheck') {
+    group = 'verification'
+    description = 'Runs isolated Phase 2 Earth world-preset resource checks.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:minecraft-mod:checkstyleTest'
+    dependsOn ':modules:minecraft-mod:phase2WorldPresetTest'
+}
+
+tasks.register('phase2WorldgenSmoke') {
+    group = 'verification'
+    description = 'Loads NeoForge headlessly to decode the Phase 2 world-generation registries.'
+    dependsOn ':modules:minecraft-mod:phase2WorldgenSmoke'
+}
+
 tasks.register('phase2Check') {
     group = 'verification'
     description = 'Runs all automated Phase 2 checks implemented so far.'
     dependsOn tasks.named('phase2FoundationCheck')
     dependsOn tasks.named('phase2CodecCheck')
+    dependsOn tasks.named('phase2WorldPresetCheck')
+    dependsOn tasks.named('phase2WorldgenSmoke')
 }
 
 tasks.register('allChecks') {
     group = 'verification'
     description = 'Runs every automated project check across all modules and phases.'
     dependsOn tasks.named('check')
+    dependsOn tasks.named('phase2WorldgenSmoke')
 }
