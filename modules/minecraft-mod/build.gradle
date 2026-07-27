@@ -52,6 +52,7 @@ final Provider<String> modId = providers.gradleProperty('mod_id')
 final Provider<String> neoVersion = providers.gradleProperty('neo_version')
 final Provider<String> parchmentMappingsVersion = providers.gradleProperty('parchment_mappings_version')
 final Provider<String> parchmentMinecraftVersion = providers.gradleProperty('parchment_minecraft_version')
+final String moduleVersion = version.toString()
 
 base {
     archivesName = artifactId.get()
@@ -143,7 +144,7 @@ tasks.register('verifyProductionJar') {
 
     doLast {
         File modJarFile = productionJar.get().archiveFile.get().asFile
-        String expectedName = "${artifactId.get()}-${project.version}.jar"
+        String expectedName = "${artifactId.get()}-${moduleVersion}.jar"
         if (modJarFile.name != expectedName) {
             throw new GradleException(
                     "Installable mod JAR must be unclassified; expected ${expectedName}, got ${modJarFile.name}")
