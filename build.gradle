@@ -144,6 +144,22 @@ tasks.register('phase2FoundationCheck') {
     dependsOn ':modules:minecraft-mod:phase2FoundationTest'
 }
 
+tasks.register('phase2CodecCheck') {
+    group = 'verification'
+    description = 'Runs isolated Phase 2 world-generation codec contract checks.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:minecraft-mod:checkstyleMain'
+    dependsOn ':modules:minecraft-mod:checkstyleTest'
+    dependsOn ':modules:minecraft-mod:phase2CodecTest'
+}
+
+tasks.register('phase2Check') {
+    group = 'verification'
+    description = 'Runs all automated Phase 2 checks implemented so far.'
+    dependsOn tasks.named('phase2FoundationCheck')
+    dependsOn tasks.named('phase2CodecCheck')
+}
+
 tasks.register('allChecks') {
     group = 'verification'
     description = 'Runs every automated project check across all modules and phases.'
