@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orbis-terrae.invalid/schemas/world-manifest-v1.schema.json",
+  "title": "Orbis Terrae World Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatorVersion",
+    "atlasVersion",
+    "projection",
+    "profile",
+    "worldSeed",
+    "configurationHash",
+    "createdAtUtc"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "generatorVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "atlasVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "projection": {
+      "const": "equirectangular"
+    },
+    "profile": {
+      "$ref": "#/$defs/profile"
+    },
+    "worldSeed": {
+      "type": "integer"
+    },
+    "configurationHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "createdAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "horizontalScaleId",
+        "horizontalMetresPerBlock",
+        "projectedWidthBlocks",
+        "projectedHeightBlocks",
+        "minimumY",
+        "height",
+        "seaLevel",
+        "verticalControlPoints"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+        },
+        "horizontalScaleId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "horizontalMetresPerBlock": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "projectedWidthBlocks": {
+          "type": "integer",
+          "minimum": 2,
+          "multipleOf": 2
+        },
+        "projectedHeightBlocks": {
+          "type": "integer",
+          "minimum": 2,
+          "multipleOf": 2
+        },
+        "minimumY": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 16,
+          "multipleOf": 16
+        },
+        "seaLevel": {
+          "type": "integer"
+        },
+        "verticalControlPoints": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/controlPoint"
+          }
+        }
+      }
+    },
+    "controlPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "realMetres",
+        "blocks"
+      ],
+      "properties": {
+        "realMetres": {
+          "type": "number"
+        },
+        "blocks": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}
