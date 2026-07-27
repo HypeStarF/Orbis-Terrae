@@ -1,6 +1,7 @@
 package me.sdmannen.orbis_terrae;
 
 import com.mojang.logging.LogUtils;
+import me.sdmannen.orbis_terrae.worldgen.OrbisWorldgenRegistries;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -13,6 +14,7 @@ public final class OrbisTerrae {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public OrbisTerrae(IEventBus modEventBus, ModContainer modContainer) {
+        OrbisWorldgenRegistries.register(modEventBus);
         LOGGER.info("Orbis Terrae common entry point loaded");
     }
 }

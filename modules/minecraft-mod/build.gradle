@@ -130,3 +130,13 @@ tasks.register('phase2FoundationTest', Test) {
         includeTestsMatching('me.sdmannen.orbis_terrae.Phase2FoundationTest')
     }
 }
+
+tasks.register('phase2CodecTest', Test) {
+    group = 'verification'
+    description = 'Runs the Phase 2 world-generation codec contract tests.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching('me.sdmannen.orbis_terrae.Phase2CodecRegistrationTest')
+    }
+}
