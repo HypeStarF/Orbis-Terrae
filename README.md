@@ -1,8 +1,8 @@
 # Orbis Terrae
 
 Orbis Terrae is a NeoForge 1.21.1 project for deterministic, offline Earth world generation.
-Phase 0 established the build, module, CI, architecture, provenance, and dedicated-server-safe mod
-foundation. Phase 1 now focuses on the atlas proof of concept.
+Phase 0 established the build and server-safe mod foundation. Phase 1 completed the atlas proof of concept.
+Phase 2 now connects that atlas foundation to the first playable Earth terrain.
 
 ## Project identity
 
@@ -13,8 +13,8 @@ foundation. Phase 1 now focuses on the atlas proof of concept.
 | NeoForge temporary build pin | `21.1.243` |
 | Java | `21` |
 | Gradle | `9.6.1` |
-| Development version | `0.1.0-SNAPSHOT` |
-| Current phase | Phase 1 — Atlas proof of concept |
+| Development version | `0.2.0-SNAPSHOT` |
+| Current phase | Phase 2 — Basic Earth dimension |
 | Mod ID | `orbis_terrae` |
 | Group | `me.sdmannen` |
 | Artifact | `orbis-terrae` |
@@ -29,7 +29,7 @@ Linux/macOS:
 
 ```bash
 chmod +x gradlew
-./gradlew clean phase0Check --no-configuration-cache --warning-mode=fail
+./gradlew clean phase2FoundationCheck --no-configuration-cache --warning-mode=fail
 ./gradlew :modules:minecraft-mod:runClient --no-configuration-cache
 ./gradlew :modules:minecraft-mod:runServer --no-configuration-cache
 ./gradlew :modules:atlas-compiler:run --args="--version" --no-configuration-cache
@@ -41,7 +41,7 @@ chmod +x gradlew
 Windows:
 
 ```bat
-gradlew.bat clean phase0Check --no-configuration-cache --warning-mode=fail
+gradlew.bat clean phase2FoundationCheck --no-configuration-cache --warning-mode=fail
 gradlew.bat :modules:minecraft-mod:runClient --no-configuration-cache
 gradlew.bat :modules:minecraft-mod:runServer --no-configuration-cache
 gradlew.bat :modules:atlas-compiler:run --args="--version" --no-configuration-cache
@@ -50,7 +50,7 @@ gradlew.bat :modules:atlas-compiler:run ^
   --no-configuration-cache
 ```
 
-Configuration caching is disabled for Phase 0 verification. Build caching remains enabled.
+Configuration caching is disabled for verification. Build caching remains enabled.
 The committed wrapper downloads Gradle 9.6.1 and verifies the distribution against its published
 SHA-256 checksum.
 
@@ -61,14 +61,17 @@ dedicated-server smoke test, restart test, identity review, and architecture che
 See [`PHASE0-STATUS.md`](PHASE0-STATUS.md) and
 [`docs/phase-0/verification-record.md`](docs/phase-0/verification-record.md).
 
-Phase 1 is the atlas proof of concept. The repository now contains the first `OTAT` tile reader and
-writer, elevation and land-mask tile types, equirectangular coordinate conversion, a bounded tile
-cache, a strict versioned atlas-manifest contract, and compiler commands for normalized elevation,
-land-mask, and manifest inputs. See [`docs/atlas/manifest-v1.md`](docs/atlas/manifest-v1.md).
+Phase 1 closed on 2026-07-27 after the atlas manifest, deterministic tile format, geographic samplers,
+regional and global atlas builds, runtime selection, corruption fallback, cache bounds, and performance
+exit audit were completed. See [`docs/phase-1/README.md`](docs/phase-1/README.md).
+
+Phase 2 has started with immutable world profiles, centred equirectangular coordinate mapping, nonlinear
+vertical curves, and world manifest schema v1. The next step registers the custom biome-source and
+chunk-generator codecs. See [`docs/phase-2/README.md`](docs/phase-2/README.md).
 
 ## Modules
 
-- `minecraft-mod`: NeoForge entry point and run configurations.
+- `minecraft-mod`: NeoForge entry point, Earth world profiles, manifests, and run configurations.
 - `atlas-api`: Minecraft-independent tile format, strict atlas manifest, coordinate sampling, and cache.
 - `atlas-compiler`: command-line packer and manifest validator/canonicalizer.
 - `compatibility-api`: stable compatibility contracts.
@@ -83,3 +86,4 @@ land-mask, and manifest inputs. See [`docs/atlas/manifest-v1.md`](docs/atlas/man
 - No `net.minecraft.client` references outside the `client` package.
 - No raw GIS processing in the runtime mod.
 - No dataset is approved for redistribution until the licensing matrix says `APPROVED`.
+- World-defining settings must be copied into the immutable world manifest.
