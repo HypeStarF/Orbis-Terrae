@@ -30,6 +30,7 @@ final class Phase2CodecRegistrationTest {
         assertTrue(biomeSource.contains("fieldOf(\"biome\")"));
         assertTrue(chunkGenerator.contains("fieldOf(\"biome_source\")"));
         assertTrue(chunkGenerator.contains("fieldOf(\"profile\")"));
+        assertTrue(chunkGenerator.contains("codec().optionalFieldOf(\"spawn\""));
         assertTrue(chunkGenerator.contains("WorldProfiles.require(profileId)"));
     }
 

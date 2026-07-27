@@ -8,7 +8,13 @@
           "type": "orbis_terrae:earth",
           "biome": "minecraft:plains"
         },
-        "profile": "global-survival"
+        "profile": "global-survival",
+        "spawn": {
+          "mode": "coordinates",
+          "latitude": 60.3913,
+          "longitude": 5.3221,
+          "search_radius_blocks": 64
+        }
       }
     },
     "minecraft:the_nether": {

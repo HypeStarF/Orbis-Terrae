@@ -1,5 +1,6 @@
 package me.sdmannen.orbis_terrae.worldgen;
 
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -8,27 +9,39 @@ import java.io.UncheckedIOException;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import me.sdmannen.orbis_terrae.profile.WorldProfile;
 import me.sdmannen.orbis_terrae.profile.WorldProfiles;
 import me.sdmannen.orbis_terrae.worldgen.atlas.EarthAtlasSampler;
 import me.sdmannen.orbis_terrae.worldgen.atlas.OrbisAtlasRuntimeManager;
+import me.sdmannen.orbis_terrae.worldgen.spawn.GeographicSpawnResolver;
+import me.sdmannen.orbis_terrae.worldgen.spawn.SpawnConfiguration;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 
 /** Serializable Earth generator that fills deterministic atlas-backed terrain columns. */
 public final class OrbisChunkGenerator extends ChunkGenerator {
@@ -37,7 +50,9 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
                     BiomeSource.CODEC.fieldOf("biome_source")
                             .forGetter(OrbisChunkGenerator::getBiomeSource),
                     Codec.STRING.fieldOf("profile")
-                            .forGetter(generator -> generator.profile.id()))
+                            .forGetter(generator -> generator.profile.id()),
+                    SpawnConfiguration.codec().optionalFieldOf("spawn", SpawnConfiguration.BUNDLED_BERGEN)
+                            .forGetter(OrbisChunkGenerator::spawnConfiguration))
                     .apply(instance, OrbisChunkGenerator::new));
 
     private static final EnumSet<Heightmap.Types> GENERATED_HEIGHTMAPS = EnumSet.of(
@@ -45,15 +60,28 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
             Heightmap.Types.WORLD_SURFACE_WG);
 
     private final WorldProfile profile;
+    private final SpawnConfiguration spawnConfiguration;
     private transient volatile EarthAtlasSampler atlasSampler;
 
     public OrbisChunkGenerator(BiomeSource biomeSource, String profileId) {
+        this(biomeSource, profileId, SpawnConfiguration.BUNDLED_BERGEN);
+    }
+
+    public OrbisChunkGenerator(
+            BiomeSource biomeSource,
+            String profileId,
+            SpawnConfiguration spawnConfiguration) {
         super(biomeSource);
         profile = WorldProfiles.require(profileId);
+        this.spawnConfiguration = Objects.requireNonNull(spawnConfiguration, "spawnConfiguration");
     }
 
     public WorldProfile profile() {
         return profile;
+    }
+
+    public SpawnConfiguration spawnConfiguration() {
+        return spawnConfiguration;
     }
 
     /** Samples all available atlas inputs for one Minecraft block column. */
@@ -70,6 +98,30 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
                     "Failed to sample Orbis Terrae atlas at " + blockX + ", " + blockZ,
                     exception);
         }
+    }
+
+    /** Resolves the configured geographic spawn, falling back to the bundled Bergen target when necessary. */
+    public GeographicSpawnResolver.SpawnResolution resolveSpawn() {
+        Optional<GeographicSpawnResolver.SpawnResolution> configured = GeographicSpawnResolver.resolve(
+                profile,
+                spawnConfiguration,
+                this::planTerrainColumn);
+        if (configured.isPresent()) {
+            return configured.orElseThrow();
+        }
+
+        if (!spawnConfiguration.equals(SpawnConfiguration.BUNDLED_BERGEN)) {
+            Optional<GeographicSpawnResolver.SpawnResolution> bundledFallback = GeographicSpawnResolver.resolve(
+                    profile,
+                    SpawnConfiguration.BUNDLED_BERGEN,
+                    this::planTerrainColumn);
+            if (bundledFallback.isPresent()) {
+                return bundledFallback.orElseThrow();
+            }
+        }
+
+        throw new IllegalStateException(
+                "No safe Orbis Terrae spawn exists near the configured target or bundled Bergen fallback");
     }
 
     @Override
@@ -115,6 +167,34 @@ public final class OrbisChunkGenerator extends ChunkGenerator {
     @Override
     public void spawnOriginalMobs(WorldGenRegion level) {
         // Natural population is deferred until biome and spawn rules are introduced.
+    }
+
+    @Override
+    public void createStructures(
+            RegistryAccess registryAccess,
+            ChunkGeneratorStructureState structureState,
+            StructureManager structureManager,
+            ChunkAccess chunk,
+            StructureTemplateManager structureTemplateManager) {
+        // Artificial structure starts are disabled for the Orbis Terrae dimension.
+    }
+
+    @Override
+    public void createReferences(
+            WorldGenLevel level,
+            StructureManager structureManager,
+            ChunkAccess chunk) {
+        // Structure references remain empty because Orbis Terrae creates no artificial structure starts.
+    }
+
+    @Override
+    public Pair<BlockPos, Holder<Structure>> findNearestMapStructure(
+            ServerLevel level,
+            HolderSet<Structure> structures,
+            BlockPos position,
+            int searchRadius,
+            boolean skipReferencedStructures) {
+        return null;
     }
 
     @Override
