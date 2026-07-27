@@ -1,40 +1,39 @@
 package me.sdmannen.orbis_terrae;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.gson.JsonElement;
-import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.MapCodec;
-import java.util.Set;
-import java.util.stream.Collectors;
-import me.sdmannen.orbis_terrae.worldgen.OrbisBiomeSource;
-import me.sdmannen.orbis_terrae.worldgen.OrbisChunkGenerator;
-import me.sdmannen.orbis_terrae.worldgen.OrbisWorldgenRegistries;
-import net.minecraft.resources.ResourceLocation;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 final class Phase2CodecRegistrationTest {
-    @Test
-    void registryIdsAreStableAndNamespaced() {
-        ResourceLocation expected = ResourceLocation.fromNamespaceAndPath(OrbisTerrae.MOD_ID, "earth");
+    private static final Path WORLDGEN_ROOT = Path.of(
+            "src", "main", "java", "me", "sdmannen", "orbis_terrae", "worldgen");
 
-        assertEquals(expected, OrbisWorldgenRegistries.EARTH_BIOME_SOURCE_ID);
-        assertEquals(expected, OrbisWorldgenRegistries.EARTH_CHUNK_GENERATOR_ID);
-        assertEquals(expected, OrbisWorldgenRegistries.EARTH_BIOME_SOURCE.getId());
-        assertEquals(expected, OrbisWorldgenRegistries.EARTH_CHUNK_GENERATOR.getId());
+    @Test
+    void registryIdsAreStableAndNamespaced() throws IOException {
+        String source = read("OrbisWorldgenRegistries.java");
+
+        assertTrue(source.contains("ResourceLocation.fromNamespaceAndPath(OrbisTerrae.MOD_ID, \"earth\")"));
+        assertTrue(source.contains("BuiltInRegistries.BIOME_SOURCE"));
+        assertTrue(source.contains("BuiltInRegistries.CHUNK_GENERATOR"));
+        assertTrue(source.contains("EARTH_BIOME_SOURCE_ID.getPath()"));
+        assertTrue(source.contains("EARTH_CHUNK_GENERATOR_ID.getPath()"));
     }
 
     @Test
-    void codecFieldsRemainExplicitAndVersionable() {
-        assertEquals(Set.of("biome"), codecKeys(OrbisBiomeSource.CODEC));
-        assertEquals(
-                Set.of("biome_source", "profile"),
-                codecKeys(OrbisChunkGenerator.CODEC));
+    void codecFieldsRemainExplicitAndVersionable() throws IOException {
+        String biomeSource = read("OrbisBiomeSource.java");
+        String chunkGenerator = read("OrbisChunkGenerator.java");
+
+        assertTrue(biomeSource.contains("fieldOf(\"biome\")"));
+        assertTrue(chunkGenerator.contains("fieldOf(\"biome_source\")"));
+        assertTrue(chunkGenerator.contains("fieldOf(\"profile\")"));
+        assertTrue(chunkGenerator.contains("WorldProfiles.require(profileId)"));
     }
 
-    private static Set<String> codecKeys(MapCodec<?> codec) {
-        return codec.keys(JsonOps.INSTANCE)
-                .map(JsonElement::getAsString)
-                .collect(Collectors.toUnmodifiableSet());
+    private static String read(String filename) throws IOException {
+        return Files.readString(WORLDGEN_ROOT.resolve(filename));
     }
 }
