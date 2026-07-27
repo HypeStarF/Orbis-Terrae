@@ -24,7 +24,7 @@ is `0.2.x — Terrain Alpha`.
 4. [Install the bundled atlas and sample elevation and land mask](step-04-atlas-sampling.md)
 5. [Fill deterministic land and ocean terrain columns](step-05-terrain-columns.md)
 6. [Disable artificial structures and add safe geographic spawn selection](step-06-spawn-and-structures.md)
-7. Add chunk determinism, save/reload, client, and dedicated-server validation
+7. [Add chunk determinism, save/reload, client, and dedicated-server validation](step-07-determinism-and-persistence.md)
 8. Benchmark the first terrain pipeline and perform the Phase 2 exit audit
 
 ## Exit criteria
@@ -37,7 +37,7 @@ Phase 2 closes only when:
 - singleplayer and dedicated server both work;
 - no runtime internet access is required.
 
-Steps 1 through 6 now establish immutable configuration, Minecraft serialization, data-driven world creation,
-offline atlas installation, deterministic terrain columns, generator-level artificial-structure suppression, and
-bounded geographic spawn selection. Step 7 validates deterministic chunks, persistence, client startup, and
-dedicated-server behavior.
+Steps 1 through 7 now establish immutable configuration, Minecraft serialization, data-driven world creation,
+offline atlas installation, deterministic terrain columns, generator-level artificial-structure suppression,
+bounded geographic spawn selection, stable chunk fingerprints, strict manifest persistence, and repeatable client
+and dedicated-server launch preparation. Step 8 benchmarks the terrain pipeline and performs the Phase 2 exit audit.

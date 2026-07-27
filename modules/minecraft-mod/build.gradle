@@ -284,6 +284,34 @@ tasks.register('phase2SpawnStructureTest', Test) {
     }
 }
 
+tasks.register('phase2DeterminismPersistenceTest', Test) {
+    group = 'verification'
+    description = 'Runs the Phase 2 chunk-determinism and persistence contract tests.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching('me.sdmannen.orbis_terrae.Phase2DeterminismPersistenceTest')
+    }
+}
+
+tasks.register('phase2RuntimePreparationCheck') {
+    group = 'verification'
+    description = 'Generates and verifies NeoForge client and dedicated-server run argument files.'
+    dependsOn tasks.named('prepareClientRun')
+    dependsOn tasks.named('prepareServerRun')
+
+    doLast {
+        File moddevDirectory = layout.buildDirectory.dir('moddev').get().asFile
+        List<String> requiredFiles = ['clientRunVmArgs.txt', 'serverRunVmArgs.txt']
+        requiredFiles.each { String filename ->
+            File argumentFile = new File(moddevDirectory, filename)
+            if (!argumentFile.isFile() || argumentFile.length() == 0L) {
+                throw new GradleException("Missing generated NeoForge run arguments: ${argumentFile}")
+            }
+        }
+    }
+}
+
 tasks.register('phase2WorldgenSmoke') {
     group = 'verification'
     description = 'Loads NeoForge headlessly to decode the Phase 2 world-generation registries.'

@@ -8,42 +8,148 @@
     "schemaVersion",
     "generatorVersion",
     "atlasVersion",
-    "profileHash",
-    "seed",
-    "createdAt"
+    "projection",
+    "profile",
+    "spawn",
+    "worldSeed",
+    "configurationHash",
+    "createdAtUtc"
   ],
   "properties": {
     "schemaVersion": {
-      "type": "integer",
       "const": 1
     },
     "generatorVersion": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "atlasVersion": {
-      "type": "string"
-    },
-    "profileHash": {
       "type": "string",
-      "pattern": "^[a-fA-F0-9]{64}$"
+      "minLength": 1
     },
-    "seed": {
+    "projection": {
+      "const": "equirectangular"
+    },
+    "profile": {
+      "$ref": "#/$defs/profile"
+    },
+    "spawn": {
+      "$ref": "#/$defs/spawn"
+    },
+    "worldSeed": {
       "type": "integer"
     },
-    "createdAt": {
+    "configurationHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "createdAtUtc": {
       "type": "string",
       "format": "date-time"
-    },
-    "compatibilityMappings": {
+    }
+  },
+  "$defs": {
+    "profile": {
       "type": "object",
-      "additionalProperties": {
-        "type": "string"
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "horizontalScaleId",
+        "horizontalMetresPerBlock",
+        "projectedWidthBlocks",
+        "projectedHeightBlocks",
+        "minimumY",
+        "height",
+        "seaLevel",
+        "verticalControlPoints"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+        },
+        "horizontalScaleId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "horizontalMetresPerBlock": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "projectedWidthBlocks": {
+          "type": "integer",
+          "minimum": 2,
+          "multipleOf": 2
+        },
+        "projectedHeightBlocks": {
+          "type": "integer",
+          "minimum": 2,
+          "multipleOf": 2
+        },
+        "minimumY": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 16,
+          "multipleOf": 16
+        },
+        "seaLevel": {
+          "type": "integer"
+        },
+        "verticalControlPoints": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/controlPoint"
+          }
+        }
       }
     },
-    "migrationHistory": {
-      "type": "array",
-      "items": {
-        "type": "object"
+    "spawn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "latitude",
+        "longitude",
+        "searchRadiusBlocks"
+      ],
+      "properties": {
+        "mode": {
+          "const": "coordinates"
+        },
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "searchRadiusBlocks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
+        }
+      }
+    },
+    "controlPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "realMetres",
+        "blocks"
+      ],
+      "properties": {
+        "realMetres": {
+          "type": "number"
+        },
+        "blocks": {
+          "type": "number"
+        }
       }
     }
   }

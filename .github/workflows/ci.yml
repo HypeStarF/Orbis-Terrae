@@ -191,7 +191,7 @@ jobs:
 
   windows-atlas-tests:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Check out repository
@@ -224,6 +224,11 @@ jobs:
         shell: pwsh
         run: |
           .\gradlew.bat phase1Check --no-configuration-cache --warning-mode=fail --stacktrace
+
+      - name: Prepare NeoForge client and server runs
+        shell: pwsh
+        run: |
+          .\gradlew.bat phase2RuntimePreparationCheck --no-configuration-cache --warning-mode=fail --stacktrace
 
       - name: Upload Windows test reports
         if: always()

@@ -10,6 +10,7 @@
     "atlasVersion",
     "projection",
     "profile",
+    "spawn",
     "worldSeed",
     "configurationHash",
     "createdAtUtc"
@@ -31,6 +32,9 @@
     },
     "profile": {
       "$ref": "#/$defs/profile"
+    },
+    "spawn": {
+      "$ref": "#/$defs/spawn"
     },
     "worldSeed": {
       "type": "integer"
@@ -99,6 +103,36 @@
           "items": {
             "$ref": "#/$defs/controlPoint"
           }
+        }
+      }
+    },
+    "spawn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "latitude",
+        "longitude",
+        "searchRadiusBlocks"
+      ],
+      "properties": {
+        "mode": {
+          "const": "coordinates"
+        },
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "searchRadiusBlocks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
         }
       }
     },
