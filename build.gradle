@@ -170,6 +170,13 @@ tasks.register('phase2AtlasSamplingCheck') {
     dependsOn ':modules:minecraft-mod:phase2AtlasSamplingTest'
 }
 
+tasks.register('productionJarCheck') {
+    group = 'verification'
+    description = 'Builds and verifies the installable mod JAR and its nested runtime libraries.'
+    dependsOn tasks.named('verifyFormatting')
+    dependsOn ':modules:minecraft-mod:verifyProductionJar'
+}
+
 tasks.register('phase2WorldgenSmoke') {
     group = 'verification'
     description = 'Loads NeoForge headlessly to decode the Phase 2 world-generation registries.'
@@ -183,6 +190,7 @@ tasks.register('phase2Check') {
     dependsOn tasks.named('phase2CodecCheck')
     dependsOn tasks.named('phase2WorldPresetCheck')
     dependsOn tasks.named('phase2AtlasSamplingCheck')
+    dependsOn tasks.named('productionJarCheck')
     dependsOn tasks.named('phase2WorldgenSmoke')
 }
 
@@ -190,5 +198,6 @@ tasks.register('allChecks') {
     group = 'verification'
     description = 'Runs every automated project check across all modules and phases.'
     dependsOn tasks.named('check')
+    dependsOn tasks.named('productionJarCheck')
     dependsOn tasks.named('phase2WorldgenSmoke')
 }
