@@ -9,9 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 
 final class Phase2WorldPresetTest {
@@ -87,10 +86,9 @@ final class Phase2WorldPresetTest {
     }
 
     private static Set<String> fieldNames(JsonNode node) {
-        return StreamSupport.stream(
-                        ((Iterable<String>) () -> node.fieldNames()).spliterator(),
-                        false)
-                .collect(Collectors.toUnmodifiableSet());
+        Set<String> names = new HashSet<>();
+        node.fieldNames().forEachRemaining(names::add);
+        return Set.copyOf(names);
     }
 
     private static JsonNode readResource(String first, String... more) throws IOException {
