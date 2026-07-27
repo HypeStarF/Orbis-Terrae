@@ -59,12 +59,11 @@ SHA-256 checksum.
 Build the production artifact with:
 
 ```bash
-./gradlew :modules:minecraft-mod:jarJar --no-configuration-cache --warning-mode=fail
+./gradlew :modules:minecraft-mod:jar --no-configuration-cache --warning-mode=fail
 ```
 
-Install `modules/minecraft-mod/build/libs/orbis-terrae-0.2.0-SNAPSHOT.jar`. This unclassified JAR contains
-`atlas-api` and `compatibility-api` through NeoForge jar-in-jar metadata. The `-slim.jar` artifact is only the
-unbundled module output and must not be installed as a standalone mod.
+Install `modules/minecraft-mod/build/libs/orbis-terrae-0.2.0-SNAPSHOT.jar`. The JAR contains `atlas-api` and
+`compatibility-api` through NeoForge jar-in-jar metadata and includes the bundled Bergen atlas.
 
 ## Verification scopes
 
