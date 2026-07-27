@@ -140,3 +140,19 @@ tasks.register('phase2CodecTest', Test) {
         includeTestsMatching('me.sdmannen.orbis_terrae.Phase2CodecRegistrationTest')
     }
 }
+
+tasks.register('phase2WorldPresetTest', Test) {
+    group = 'verification'
+    description = 'Runs the Phase 2 Earth world-preset resource contract tests.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching('me.sdmannen.orbis_terrae.Phase2WorldPresetTest')
+    }
+}
+
+tasks.register('phase2WorldgenSmoke') {
+    group = 'verification'
+    description = 'Loads NeoForge headlessly to decode the Phase 2 world-generation registries.'
+    dependsOn tasks.named('runGameTestServer')
+}
