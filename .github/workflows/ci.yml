@@ -73,11 +73,11 @@ jobs:
           grep -Fqx 'distributionUrl=https\://services.gradle.org/distributions/gradle-9.6.1-bin.zip' gradle/wrapper/gradle-wrapper.properties
           ./gradlew --version --no-configuration-cache | grep -F 'Gradle 9.6.1'
 
-      - name: Verify Phase 0
+      - name: Verify all automated checks
         shell: bash
         run: |
           set -o pipefail
-          ./gradlew clean phase0Check --no-configuration-cache --warning-mode=fail --stacktrace 2>&1 | tee gradle-build.log
+          ./gradlew clean allChecks --no-configuration-cache --warning-mode=fail --stacktrace 2>&1 | tee gradle-build.log
 
       - name: Upload Gradle log
         if: always()
@@ -220,10 +220,10 @@ jobs:
           python scripts/gis/build_northern_europe_detailed_atlas.py plan | Out-Null
           python scripts/gis/build_northern_europe_detailed_atlas.py --profile atlas/profiles/northern-europe-detailed-smoke.json plan | Out-Null
 
-      - name: Run atlas tests
+      - name: Run Phase 1 checks
         shell: pwsh
         run: |
-          .\gradlew.bat :modules:atlas-api:test :modules:atlas-compiler:test --no-configuration-cache --warning-mode=fail --stacktrace
+          .\gradlew.bat phase1Check --no-configuration-cache --warning-mode=fail --stacktrace
 
       - name: Upload Windows test reports
         if: always()
