@@ -1,7 +1,7 @@
 [versions]
 junit = "6.1.2"
 checkstyle = "10.21.4"
-jackson = "2.21.5"
+jackson = "2.22.1"
 
 [libraries]
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
